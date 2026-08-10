@@ -16,6 +16,7 @@ Figma 노드 트리를 **그대로 마크업으로 옮기지 않는다.** 각 �
 | `~ 버튼`, 채워진 라운드 박스+텍스트 | Button        | `src/components/Button.tsx`         |
 | `~ 입력창`, 보더 박스+placeholder   | TextField     | `src/components/TextField.tsx`      |
 | 입력창 + Eye 아이콘             | PasswordField | `src/components/PasswordField.tsx`  |
+| 브랜드색 + 마크 + 라벨 버튼     | SocialButton  | `src/components/SocialButton.tsx`   |
 | `상단 앱바`                     | TopAppBar     | `src/components/TopAppBar.tsx`      |
 | `하단 탭바`                     | HomeIndicator | `src/components/HomeIndicator.tsx`  |
 | 아이콘만 있는 tappable 노드     | IconButton    | `src/components/*.tsx`              |
@@ -31,8 +32,9 @@ Figma 노드 트리를 **그대로 마크업으로 옮기지 않는다.** 각 �
   `interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>`
 - 같은 type이 **2번 이상** 등장하면 무조건 컴포넌트로 분리한다.
 - 페이지는 **조합 + 상태**만 담당한다. 치수·색 같은 스타일 세부값은 컴포넌트 안에 둔다.
-- 색상·폰트는 `tailwind.config.js` 토큰(`gray-300/400/500/800`, `font-sans`)을 쓴다.
-  하드코딩 hex 금지. (예외: 시안 전용 플레이스홀더 `#d9d9d9` 등)
+- 색상·폰트는 `tailwind.config.js` 토큰을 쓴다. 하드코딩 hex 금지.
+  (`brand`, `kakao`, `naver`, `gray-200/300/400/500/800/950`, `font-sans`.
+  예외: 시안 전용 플레이스홀더 `#d9d9d9` 등)
 - 컴포넌트 상단 JSDoc에 원본 노드 ID를 남긴다. `/** Figma \`로그인 버튼\` (node 5:3562) */`
 
 ---
