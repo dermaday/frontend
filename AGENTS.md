@@ -17,6 +17,10 @@ Figma 노드 트리를 **그대로 마크업으로 옮기지 않는다.** 각 �
 | `~ 입력창`, 보더 박스+placeholder   | TextField     | `src/components/TextField.tsx`      |
 | 입력창 + Eye 아이콘             | PasswordField | `src/components/PasswordField.tsx`  |
 | 브랜드색 + 마크 + 라벨 버튼     | SocialButton  | `src/components/SocialButton.tsx`   |
+| `검색창`                        | SearchField   | `src/components/SearchField.tsx`    |
+| 체크박스 + 라벨 목록 항목       | ProcedureItem | `src/components/ProcedureItem.tsx`  |
+| `Beta` 같은 상태 배지           | BetaBadge     | `src/components/BetaBadge.tsx`      |
+| 목록 위에 떠 있는 하단 버튼 영역 | BottomActionBar | `src/components/BottomActionBar.tsx` |
 | `상단 앱바`                     | TopAppBar     | `src/components/TopAppBar.tsx`      |
 | `하단 탭바`                     | HomeIndicator | `src/components/HomeIndicator.tsx`  |
 | 아이콘만 있는 tappable 노드     | IconButton    | `src/components/*.tsx`              |
