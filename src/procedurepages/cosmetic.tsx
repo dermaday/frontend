@@ -192,7 +192,7 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            aria-label="제품 사진 촬영"
+            aria-label="제품 사진 추가"
             className="flex h-[80px] w-[80px] shrink-0 items-center justify-center rounded-[10px] bg-gray-100"
           >
             <img
@@ -204,12 +204,14 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
             />
           </button>
 
-          {/* capture 속성이 있으면 모바일에서 카메라가 바로 열린다 */}
+          {/*
+            capture를 붙이면 카메라만 열리므로 일부러 뺐다.
+            빼면 모바일에서 "사진 찍기 / 보관함에서 선택" 시트가 뜬다.
+          */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             onChange={(event) => handlePickImage(event.target.files?.[0])}
           />
