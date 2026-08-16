@@ -1,12 +1,18 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import chevronLeftIcon from '../assets/icons/chevron-left.svg'
+import { DownUpText, LeftRightText } from '../components/AnimatedText'
 import BottomActionBar from '../components/BottomActionBar'
 import Button from '../components/Button'
 import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
 import TopAppBar from '../components/TopAppBar'
 import { SKIN_TYPE_META, type SkinType } from './skinTypeData'
+
+/** 카드 등장 애니메이션 (ms) */
+const CARD_INTRO_DELAY = 300
+const CARD_INTRO_STAGGER = 120
+const CARD_INTRO_DURATION = 600
 
 interface SkinTypeLocationState {
   resultType?: SkinType
@@ -34,43 +40,48 @@ export default function SkinTypePage() {
       <TopAppBar onBack={() => navigate(-1)} />
 
       <h1 className="w-full text-[24px] font-bold leading-normal text-black">
-        어떤 피부타입인가요?
+        <LeftRightText>어떤 피부타입인가요?</LeftRightText>
       </h1>
 
       <div className="flex w-full flex-col gap-[15px]">
         <div className="grid grid-cols-2 gap-[13px]">
-          {SKIN_TYPE_META.map((meta) => {
+          {SKIN_TYPE_META.map((meta, index) => {
             const active = selected === meta.id
             return (
-              <button
+              <DownUpText
                 key={meta.id}
-                type="button"
-                onClick={() => setSelected(meta.id)}
-                aria-pressed={active}
-                className={[
-                  'flex h-[220px] w-full flex-col items-center justify-center gap-[15px] rounded-[10px] border pb-[21px] pl-[13px] pr-[14px] pt-[36px]',
-                  active
-                    ? 'border-2 border-brand bg-brand/20'
-                    : 'border-gray-200 bg-white',
-                ].join(' ')}
+                delay={CARD_INTRO_DELAY + index * CARD_INTRO_STAGGER}
+                duration={CARD_INTRO_DURATION}
               >
-                <img
-                  src={meta.icon}
-                  alt=""
-                  width={meta.iconWidth}
-                  height={meta.iconHeight}
-                  className="block"
-                  style={{ width: meta.iconWidth, height: meta.iconHeight }}
-                />
-                <div className="flex flex-col items-center gap-[5px] text-center">
-                  <p className="text-[18px] font-bold leading-normal text-gray-950">
-                    {meta.label}
-                  </p>
-                  <p className="whitespace-pre-line text-[13px] font-medium leading-normal text-gray-500">
-                    {meta.description}
-                  </p>
-                </div>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setSelected(meta.id)}
+                  aria-pressed={active}
+                  className={[
+                    'flex h-[220px] w-full flex-col items-center justify-center gap-[15px] rounded-[10px] border pb-[21px] pl-[13px] pr-[14px] pt-[36px]',
+                    active
+                      ? 'border-2 border-brand bg-brand/20'
+                      : 'border-gray-200 bg-white',
+                  ].join(' ')}
+                >
+                  <img
+                    src={meta.icon}
+                    alt=""
+                    width={meta.iconWidth}
+                    height={meta.iconHeight}
+                    className="block"
+                    style={{ width: meta.iconWidth, height: meta.iconHeight }}
+                  />
+                  <div className="flex flex-col items-center gap-[5px] text-center">
+                    <p className="text-[18px] font-bold leading-normal text-gray-950">
+                      {meta.label}
+                    </p>
+                    <p className="whitespace-pre-line text-[13px] font-medium leading-normal text-gray-500">
+                      {meta.description}
+                    </p>
+                  </div>
+                </button>
+              </DownUpText>
             )
           })}
         </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import answerYesIcon from '../assets/icons/answer-yes.svg'
+import { DownUpText, LeftRightText } from '../components/AnimatedText'
 import Button from '../components/Button'
 import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
@@ -15,6 +16,11 @@ import {
 } from './skinTypeData'
 
 const TOTAL_ROWS = SKIN_TYPE_TEST_GRID.length
+
+/** 답변 카드 등장 애니메이션 (ms) */
+const ANSWER_INTRO_DELAY = 300
+const ANSWER_INTRO_STAGGER = 120
+const ANSWER_INTRO_DURATION = 600
 
 /** Figma `피부타입 자가 진단` (node 726:1189 / 726:1392 / 726:1485) */
 export default function SkinTypeTestPage() {
@@ -75,21 +81,35 @@ export default function SkinTypeTestPage() {
 
         <div className="flex w-full flex-col gap-[30px]">
           <p className="text-[24px] font-bold leading-normal text-black">
-            <span className="text-brand">Q. </span>
-            {question}
+            <LeftRightText key={`${cell.row}-${cell.col}`}>
+              <span className="text-brand">Q. </span>
+              {question}
+            </LeftRightText>
           </p>
 
           <div className="flex w-full items-center justify-center gap-[13px]">
-            <AnswerCard
-              label="맞아요"
-              active={answer === true}
-              onClick={() => setAnswer(true)}
-            />
-            <AnswerCard
-              label="아니에요"
-              active={answer === false}
-              onClick={() => setAnswer(false)}
-            />
+            <DownUpText
+              key={`${cell.row}-${cell.col}-yes`}
+              delay={ANSWER_INTRO_DELAY}
+              duration={ANSWER_INTRO_DURATION}
+            >
+              <AnswerCard
+                label="맞아요"
+                active={answer === true}
+                onClick={() => setAnswer(true)}
+              />
+            </DownUpText>
+            <DownUpText
+              key={`${cell.row}-${cell.col}-no`}
+              delay={ANSWER_INTRO_DELAY + ANSWER_INTRO_STAGGER}
+              duration={ANSWER_INTRO_DURATION}
+            >
+              <AnswerCard
+                label="아니에요"
+                active={answer === false}
+                onClick={() => setAnswer(false)}
+              />
+            </DownUpText>
           </div>
         </div>
       </div>

@@ -17,7 +17,7 @@ export default function ProcedureStartPage() {
     <MobileScreen>
       <TopAppBar onBack={() => navigate(-1)} />
 
-      <div className="mt-[25px] flex w-full flex-col gap-[10px]">
+      <div className="flex w-full flex-col gap-[10px]">
         <h1 className="w-[259px] text-[32px] font-extrabold leading-normal text-black">
           <LeftRightText>환영합니다 {userName}님!</LeftRightText>
         </h1>
