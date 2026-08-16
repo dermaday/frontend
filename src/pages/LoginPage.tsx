@@ -6,7 +6,7 @@ import { SPLASH_VISIBLE_DURATION } from '../components/SplashOverlay'
 import Wordmark from '../components/Wordmark'
 import { redirectToOAuthProvider } from '../lib/oauth'
 import { useNavigate } from 'react-router-dom'
-import button from '../components/Button' 
+
 /** 등장 애니메이션 길이 (ms) */
 const INTRO_DURATION = 1500
 
