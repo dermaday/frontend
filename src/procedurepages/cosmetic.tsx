@@ -35,6 +35,7 @@ export default function CosmeticPage() {
   const handleSubmit = () => {
     // TODO: 백엔드 연동 — 등록한 화장품 목록을 서버로 전송한다.
     // await api.post('/cosmetics', { products })
+    navigate('/procedurepages/loading')
   }
 
   return (

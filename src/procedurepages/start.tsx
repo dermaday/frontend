@@ -36,7 +36,7 @@ export default function ProcedureStartPage() {
           className="block h-[216px] w-[324px] -scale-x-100 object-cover"
         />
 
-        <Button variant="brand" onClick={() => navigate('/procedurepages/choice')}>
+        <Button variant="brand" onClick={() => navigate('/procedurepages/skintype')}>
           시작하기
         </Button>
         <Button variant="outline" onClick={() => navigate('/procedurepages/choice')}>

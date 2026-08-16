@@ -26,6 +26,31 @@ export default {
         // 로고 워드마크 전용
         logo: ['Pattaya', 'cursive'],
       },
+      keyframes: {
+        // 로딩 문구 교체 — 아래에서 올라오며 나타나고, 위로 빠지며 사라진다
+        'step-in': {
+          from: { opacity: '0', transform: 'translateY(12px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'step-out': {
+          from: { opacity: '1', transform: 'translateY(0)' },
+          to: { opacity: '0', transform: 'translateY(-12px)' },
+        },
+        /**
+         * 점 하나가 커졌다가 작아진다. 점마다 시차를 주면
+         * 링 전체로는 '큰 점'이 돌아가는 것처럼 보인다.
+         */
+        'dot-fade': {
+          from: { transform: 'scale(1)' },
+          to: { transform: 'scale(0.2)' },
+        },
+      },
+      animation: {
+        'step-in': 'step-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'step-out': 'step-out 240ms cubic-bezier(0.4, 0, 1, 1) both',
+        // 점 하나의 크기 변화. 시차는 각 점의 animationDelay로 준다 (Lottie 대체)
+        'dot-fade': 'dot-fade 1.2s linear infinite',
+      },
     },
   },
   plugins: [],
