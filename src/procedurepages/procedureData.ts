@@ -1,5 +1,10 @@
 import type { TreatmentType } from '../api/treatments'
 import type { CosmeticIngredient, ProductType } from '../api/cosmetics'
+import cosmeticDefaultEssence from '../assets/icons/cosmetic-default-essence.svg'
+import cosmeticDefaultGeneral from '../assets/icons/cosmetic-default-general.svg'
+import cosmeticDefaultLotion from '../assets/icons/cosmetic-default-lotion.svg'
+import cosmeticDefaultOil from '../assets/icons/cosmetic-default-oil.svg'
+import cosmeticDefaultToner from '../assets/icons/cosmetic-default-toner.svg'
 
 export interface Procedure {
   id: string
@@ -153,18 +158,49 @@ export const INGREDIENT_CODE_MAP: Record<string, CosmeticIngredient> = {
   기타: 'GENERAL_COSMETIC',
 }
 
+/** 성분 코드 → 목록 카드에 표시할 라벨 (INGREDIENT_CODE_MAP의 역방향) */
+export const INGREDIENT_LABEL_MAP: Record<CosmeticIngredient, string> = {
+  RETINOL: '레티놀',
+  AHA: 'AHA',
+  BHA: 'BHA',
+  VITAMIN_C: '비타민C',
+  GENERAL_COSMETIC: '일반화장품',
+}
+
+/** 등록된 화장품의 대표 성분 라벨. 위험군 성분이 있으면 그걸 우선 보여준다. */
+export function getCosmeticCategoryLabel(ingredients: CosmeticIngredient[]): string {
+  const risk = ingredients.find((code) => code !== 'GENERAL_COSMETIC')
+  return INGREDIENT_LABEL_MAP[risk ?? 'GENERAL_COSMETIC']
+}
+
 export interface ProductTypeOption {
   code: ProductType
   name: string
+  /** 사진을 등록하지 않았을 때 종류별로 보여주는 대체 이미지 (Figma node 882:9165~9168) */
+  defaultImage: string
 }
 
 /** Figma `O-02 화장품 성분 선택` 제품 타입 선택지 */
 export const PRODUCT_TYPE_OPTIONS: ProductTypeOption[] = [
-  { code: 'TONER_SKIN', name: '토너 · 스킨' },
-  { code: 'ESSENCE_AMPOULE_SERUM', name: '에센스 · 앰플 · 세럼' },
-  { code: 'LOTION_CREAM', name: '로션 · 크림' },
-  { code: 'OIL', name: '오일' },
+  { code: 'TONER_SKIN', name: '토너 · 스킨', defaultImage: cosmeticDefaultToner },
+  {
+    code: 'ESSENCE_AMPOULE_SERUM',
+    name: '에센스 · 앰플 · 세럼',
+    defaultImage: cosmeticDefaultEssence,
+  },
+  { code: 'LOTION_CREAM', name: '로션 · 크림', defaultImage: cosmeticDefaultLotion },
+  { code: 'OIL', name: '오일', defaultImage: cosmeticDefaultOil },
 ]
+
+/** 제품 종류를 알 수 없을 때 쓰는 대체 이미지 (Figma node 899:13622) */
+export const GENERAL_COSMETIC_IMAGE = cosmeticDefaultGeneral
+
+export function getProductTypeDefaultImage(productType: ProductType): string {
+  return (
+    PRODUCT_TYPE_OPTIONS.find((option) => option.code === productType)
+      ?.defaultImage ?? GENERAL_COSMETIC_IMAGE
+  )
+}
 
 /** Figma 성분 안내 툴팁 (node 399:2088) */
 export const INGREDIENT_GUIDE: { name: string; aliases: string }[] = [

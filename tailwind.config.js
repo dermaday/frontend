@@ -44,12 +44,18 @@ export default {
           from: { transform: 'scale(1)' },
           to: { transform: 'scale(0.2)' },
         },
+        /** WHS 로딩 아이콘의 막대가 순서대로 늘어났다 줄어든다 (Lottie 대체) */
+        'bar-grow': {
+          '0%, 100%': { transform: 'scaleX(0.3)' },
+          '50%': { transform: 'scaleX(1)' },
+        },
       },
       animation: {
         'step-in': 'step-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both',
         'step-out': 'step-out 240ms cubic-bezier(0.4, 0, 1, 1) both',
         // 점 하나의 크기 변화. 시차는 각 점의 animationDelay로 준다 (Lottie 대체)
         'dot-fade': 'dot-fade 1.2s linear infinite',
+        'bar-grow': 'bar-grow 1.4s ease-in-out infinite',
       },
     },
   },

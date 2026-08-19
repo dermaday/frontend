@@ -48,3 +48,16 @@ export async function createCosmetic(
 
   return response.data
 }
+
+export async function listCosmeticsByTreatment(
+  treatmentRecordId: number,
+): Promise<CosmeticResponse[]> {
+  const response = await apiRequest<CosmeticResponse[]>(
+    `/api/v1/cosmetics?treatmentRecordId=${treatmentRecordId}`,
+  )
+  return response.data ?? []
+}
+
+export async function deleteCosmetic(cosmeticId: number): Promise<void> {
+  await apiRequest<void>(`/api/v1/cosmetics/${cosmeticId}`, { method: 'DELETE' })
+}

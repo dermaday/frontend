@@ -61,13 +61,42 @@ export interface RoutineStep {
   order: number
   name: string
   category: string
+  productType: import('../api/cosmetics').ProductType
+  tip: string
 }
 
+const ROUTINE_TIP =
+  '세안 직후 첫 단계에서 화장솜에 적셔 부드럽게 닦아내거나, 손에 덜어 얼굴 전체를 가볍게 두드려 흡수시켜 주세요'
+
 export const ROUTINE_STEPS: RoutineStep[] = [
-  { order: 1, name: '화장품명', category: 'BHA | 토너 · 스킨' },
-  { order: 2, name: '화장품명', category: '레티놀 | 에센스 · 앰플 · 세럼' },
-  { order: 3, name: '화장품명', category: 'AHA | 크림 · 로션' },
-  { order: 4, name: '화장품명', category: '비타민C | 오일' },
+  {
+    order: 1,
+    name: '화장품명',
+    category: 'BHA | 토너 · 스킨',
+    productType: 'TONER_SKIN',
+    tip: ROUTINE_TIP,
+  },
+  {
+    order: 2,
+    name: '화장품명',
+    category: '레티놀 | 에센스 · 앰플 · 세럼',
+    productType: 'ESSENCE_AMPOULE_SERUM',
+    tip: ROUTINE_TIP,
+  },
+  {
+    order: 3,
+    name: '화장품명',
+    category: 'AHA | 크림 · 로션',
+    productType: 'LOTION_CREAM',
+    tip: ROUTINE_TIP,
+  },
+  {
+    order: 4,
+    name: '화장품명',
+    category: '비타민C | 오일',
+    productType: 'OIL',
+    tip: ROUTINE_TIP,
+  },
 ]
 
 /** 모든 화장품 해금까지 남은 일수 (목업) */

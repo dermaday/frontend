@@ -1,41 +1,77 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { previewRoutine } from '../api/reports'
+import type { ReportProductCard, ReportResponse, ReportRoutineStep } from '../api/reports'
 import Navigator from '../components/Navigator'
-import {
-  getSelectedCosmetics,
-  getSelectedProcedures,
-  getSelectedSkinType,
-  hasIrritatedProcedure,
-} from '../lib/procedureStore'
+import { getLastReport } from '../lib/procedureStore'
 import { getSkinTypeMeta } from '../procedurepages/skinTypeData'
-import {
-  EVIDENCE_PAPERS,
-  HIGH_RISK_INGREDIENTS,
-  RESTRICTED_COSMETICS,
-  ROUTINE_STEPS,
-  SKIN_TYPE_REPORT_COPY,
-  UNLOCK_DAYS_LEFT,
-  USABLE_COSMETICS,
-} from './reportData'
+import type { SkinType } from '../procedurepages/skinTypeData'
 
-const USER_NAME = '염수빈'
+const SKIN_TYPE_CODE_TO_LOCAL: Record<ReportResponse['skinType']['code'], SkinType> = {
+  DRY: 'dry',
+  NORMAL: 'normal',
+  OILY: 'oily',
+  COMBINATION: 'combination',
+  UNKNOWN: 'normal',
+}
+
+interface ReportLocationState {
+  report?: ReportResponse
+}
 
 /** Figma `정상/비정상 피부 보고서` (node 882:7212 / 7457 / 7797 / 8030 / 8234) */
 export default function ReportPage() {
-  const procedures = useMemo(() => getSelectedProcedures(), [])
-  const cosmetics = useMemo(() => getSelectedCosmetics(), [])
-  const skinType = useMemo(() => getSelectedSkinType() ?? 'combination', [])
-  const isAbnormal = hasIrritatedProcedure(procedures)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const state = location.state as ReportLocationState | null
+  const report = state?.report ?? getLastReport()
 
-  const [unlocked, setUnlocked] = useState(false)
   const [procedureOpen, setProcedureOpen] = useState(true)
   const [usableOpen, setUsableOpen] = useState(true)
   const [restrictedOpen, setRestrictedOpen] = useState(true)
   const [evidenceOpen, setEvidenceOpen] = useState(true)
+  const [previewSteps, setPreviewSteps] = useState<ReportRoutineStep[] | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
 
-  const meta = getSkinTypeMeta(skinType)
-  const today = new Date()
-  const createdAt = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`
+  if (!report) {
+    return (
+      <div className="flex min-h-[100dvh] justify-center">
+        <div className="flex w-full max-w-[402px] flex-col bg-white">
+          <div className="flex flex-1 flex-col items-center justify-center gap-[10px] px-[25px]">
+            <p className="text-[15px] font-medium leading-normal text-gray-500">
+              아직 생성된 리포트가 없어요
+            </p>
+            <button
+              type="button"
+              className="text-[14px] font-semibold text-brand underline"
+              onClick={() => navigate('/procedurepages/start')}
+            >
+              시술 등록하러 가기
+            </button>
+          </div>
+          <Navigator />
+        </div>
+      </div>
+    )
+  }
+
+  const meta = getSkinTypeMeta(SKIN_TYPE_CODE_TO_LOCAL[report.skinType.code])
+  const routineReady = report.routine.status === 'READY' || report.routine.status === 'BASIC'
+  const routineSteps = routineReady ? report.routine.steps : previewSteps
+
+  const handlePreviewRoutine = async () => {
+    if (previewLoading) return
+    setPreviewLoading(true)
+    try {
+      const preview = await previewRoutine(report.reportId)
+      setPreviewSteps(preview.steps)
+    } catch {
+      // 실패해도 잠금 화면을 유지한다
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
 
   return (
     <div className="flex min-h-[100dvh] justify-center">
@@ -45,47 +81,48 @@ export default function ReportPage() {
             <div className="flex w-full items-center justify-between">
               <div className="flex flex-col gap-[3px]">
                 <p className="text-[10px] leading-normal text-gray-600">
-                  {createdAt} 생성
+                  {report.asOf.replace(/-/g, '.')} 생성
                 </p>
                 <p className="text-[18px] font-bold leading-normal text-gray-950">
-                  {USER_NAME}님의 보고서
+                  {report.header.userName}님의 보고서
                 </p>
               </div>
               <div className="flex flex-col items-end">
-                {isAbnormal ? (
-                  <p className="text-[15px] font-semibold leading-normal text-brand">
-                    기본 관리 모드
-                  </p>
-                ) : (
+                {report.header.status === 'COUNTDOWN' ? (
                   <>
                     <p className="text-[10px] leading-normal text-gray-600">
                       모든 화장품 해금까지
                     </p>
                     <p className="text-[18px] font-bold leading-normal text-brand">
-                      {unlocked ? '해금 완료' : `D-${UNLOCK_DAYS_LEFT}`}
+                      {report.header.dDayLabel}
                     </p>
                   </>
+                ) : (
+                  <p className="text-[15px] font-semibold leading-normal text-brand">
+                    {report.header.line}
+                  </p>
                 )}
               </div>
             </div>
             <div className="h-px w-full bg-gray-200" />
           </div>
 
-          {isAbnormal ? (
+          {report.basicCareAlert ? (
             <div className="flex w-full flex-col gap-[5px] rounded-[10px] bg-[#e64240]/20 px-[18px] py-[17px]">
               <p className="text-[15px] font-semibold leading-normal text-gray-950">
-                ⚠️ 지금은 기본관리만 가능해요!
+                ⚠️ {report.basicCareAlert.title}
               </p>
               <p className="text-[10px] leading-normal text-gray-700">
-                시술한 부위에 문제가 있는 것으로 보여요
-                <br />
-                등록한 화장품 중{' '}
-                <span className="text-[#e64240]">
-                  {HIGH_RISK_INGREDIENTS.join(' / ')}
-                </span>{' '}
-                성분이 포함된 화장품은 사용할 수 없어요
-                <br />
-                사용 가능한 화장품만 안내해 드릴게요
+                {report.basicCareAlert.body}
+                {report.basicCareAlert.riskGroups.length > 0 ? (
+                  <>
+                    <br />
+                    <span className="text-[#e64240]">
+                      {report.basicCareAlert.riskGroups.join(' / ')}
+                    </span>{' '}
+                    성분이 포함된 화장품은 사용할 수 없어요
+                  </>
+                ) : null}
               </p>
             </div>
           ) : null}
@@ -107,16 +144,12 @@ export default function ReportPage() {
                 <div className="flex w-[217px] flex-col gap-[10px]">
                   <div className="flex flex-col gap-[5px] border-b border-white/40 pb-[5px]">
                     <p className="text-[18px] font-bold leading-normal text-white">
-                      {meta.label} 피부
+                      {report.skinType.name}
                     </p>
                   </div>
-                  <ul className="flex flex-col gap-[5px] text-[10px] leading-normal text-white">
-                    {SKIN_TYPE_REPORT_COPY[skinType].map((line) => (
-                      <li key={line} className="list-disc pl-[15px]">
-                        {line}
-                      </li>
-                    ))}
-                  </ul>
+                  <p className="text-[10px] leading-normal text-white">
+                    {report.skinType.description}
+                  </p>
                 </div>
               </div>
             </div>
@@ -127,13 +160,13 @@ export default function ReportPage() {
             open={procedureOpen}
             onToggle={() => setProcedureOpen((prev) => !prev)}
           >
-            {procedures.length === 0 ? (
+            {report.treatments.length === 0 ? (
               <EmptyRow text="등록된 시술이 없어요" />
             ) : (
               <div className="flex w-full flex-col gap-[10px]">
-                {procedures.map((entry, index) => (
+                {report.treatments.map((entry, index) => (
                   <div
-                    key={`${entry.id}-${index}`}
+                    key={index}
                     className="flex h-[60px] w-full items-center justify-between rounded-[10px] border border-gray-200 bg-white px-[16px]"
                   >
                     <div className="flex flex-col gap-[1px]">
@@ -141,18 +174,18 @@ export default function ReportPage() {
                         {entry.name}
                       </p>
                       <p className="text-[10px] leading-normal text-gray-700">
-                        {entry.date}
+                        {entry.treatedOn.replace(/-/g, '.')}
                       </p>
                     </div>
                     <span
                       className={[
                         'text-[13px] font-medium leading-normal',
-                        entry.condition === 'irritated'
+                        entry.reaction === 'IRRITATED'
                           ? 'text-[#e64240]'
                           : 'text-brand',
                       ].join(' ')}
                     >
-                      시술 부위
+                      {entry.reactionName}
                     </span>
                   </div>
                 ))}
@@ -165,30 +198,15 @@ export default function ReportPage() {
             open={usableOpen}
             onToggle={() => setUsableOpen((prev) => !prev)}
           >
-            <div className="flex w-full flex-col gap-[10px]">
-              {USABLE_COSMETICS.map((item) => (
-                <div
-                  key={item.name}
-                  className="flex w-full flex-col gap-[5px] rounded-[10px] border border-gray-200 bg-white px-[16px] py-[10px]"
-                >
-                  <p className="text-[10px] leading-normal text-brand">
-                    {item.category}
-                  </p>
-                  <p className="text-[15px] font-semibold leading-normal text-gray-950">
-                    {item.name}
-                  </p>
-                  <p className="text-[10px] leading-normal text-gray-950">
-                    <span className="text-brand">| </span>
-                    {item.note}
-                  </p>
-                </div>
-              ))}
-              {cosmetics.length > 0 ? (
-                <p className="text-[10px] leading-normal text-gray-500">
-                  내가 등록한 화장품: {cosmetics.join(', ')}
-                </p>
-              ) : null}
-            </div>
+            {report.products.usable.length === 0 ? (
+              <EmptyRow text="사용 가능한 화장품이 없어요" />
+            ) : (
+              <div className="flex w-full flex-col gap-[10px]">
+                {report.products.usable.map((item, index) => (
+                  <UsableProductCard key={index} item={item} />
+                ))}
+              </div>
+            )}
           </CollapsibleSection>
 
           <CollapsibleSection
@@ -196,30 +214,12 @@ export default function ReportPage() {
             open={restrictedOpen}
             onToggle={() => setRestrictedOpen((prev) => !prev)}
           >
-            {unlocked ? (
-              <EmptyRow text="모든 화장품이 해금되었어요" />
+            {report.products.restricted.length === 0 ? (
+              <EmptyRow text={report.products.allUnlockedLine || '모든 화장품이 해금되었어요'} />
             ) : (
               <div className="flex w-full flex-col gap-[10px]">
-                {RESTRICTED_COSMETICS.map((item, index) => (
-                  <div
-                    key={`${item.name}-${index}`}
-                    className="flex w-full items-end justify-between gap-[11px] rounded-[10px] bg-gray-100 px-[16px] py-[10px]"
-                  >
-                    <div className="flex flex-col gap-[5px]">
-                      <p className="text-[10px] leading-normal text-gray-500">
-                        {item.category}
-                      </p>
-                      <p className="text-[15px] font-semibold leading-normal text-gray-950">
-                        {item.name}
-                      </p>
-                      <p className="text-[10px] leading-normal text-gray-700">
-                        {item.note}
-                      </p>
-                    </div>
-                    <span className="flex h-[23px] shrink-0 items-center justify-center rounded-[5px] bg-gray-400 px-[10px] text-[13px] font-medium text-white">
-                      D-{item.daysLeft}
-                    </span>
-                  </div>
+                {report.products.restricted.map((item, index) => (
+                  <RestrictedProductCard key={index} item={item} />
                 ))}
               </div>
             )}
@@ -229,9 +229,14 @@ export default function ReportPage() {
             <p className="text-[18px] font-bold leading-normal text-gray-950">
               세안 후 루틴
             </p>
-            {unlocked ? (
+            {routineSteps && routineSteps.length > 0 ? (
               <div className="flex w-full flex-col gap-[20px] rounded-[10px] border border-gray-200 bg-white px-[27px] py-[19px]">
-                {ROUTINE_STEPS.map((step) => (
+                {report.routine.referenceNote ? (
+                  <p className="text-[10px] leading-normal text-gray-500">
+                    {report.routine.referenceNote}
+                  </p>
+                ) : null}
+                {routineSteps.map((step) => (
                   <div key={step.order} className="flex items-center gap-[25px]">
                     <span
                       className={[
@@ -243,28 +248,33 @@ export default function ReportPage() {
                     </span>
                     <div className="flex flex-col gap-[3px]">
                       <p className="text-[15px] font-semibold leading-normal text-gray-950">
-                        {step.name}
+                        {step.productName}
                       </p>
                       <p className="text-[10px] leading-normal text-gray-500">
-                        {step.category}
+                        {step.categoryPill}
                       </p>
+                      {step.tip ? (
+                        <p className="text-[10px] leading-normal text-brand">
+                          {step.tip}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="relative flex h-[230px] w-full items-center justify-center overflow-hidden rounded-[10px] border border-gray-200 bg-white">
-                <p className="text-center text-[15px] font-semibold leading-normal text-gray-500">
-                  모든 화장품 해금 후
-                  <br />
-                  확인 할 수 있어요
+                <p className="whitespace-pre-line text-center text-[15px] font-semibold leading-normal text-gray-500">
+                  {report.routine.lockNotice ??
+                    '모든 화장품 해금 후\n확인 할 수 있어요'}
                 </p>
                 <button
                   type="button"
-                  onClick={() => setUnlocked(true)}
-                  className="absolute bottom-[20px] flex h-[45px] w-[280px] items-center justify-center rounded-[10px] bg-brand text-[15px] font-semibold text-white"
+                  onClick={handlePreviewRoutine}
+                  disabled={previewLoading}
+                  className="absolute bottom-[20px] flex h-[45px] w-[280px] items-center justify-center rounded-[10px] bg-brand text-[15px] font-semibold text-white disabled:opacity-60"
                 >
-                  미리 확인하기
+                  {previewLoading ? '불러오는 중...' : (report.routine.cta ?? '미리 확인하기')}
                 </button>
               </div>
             )}
@@ -279,13 +289,13 @@ export default function ReportPage() {
             onToggle={() => setEvidenceOpen((prev) => !prev)}
           >
             <div className="flex w-full flex-col gap-[10px]">
-              {EVIDENCE_PAPERS.map((paper, index) => (
+              {report.evidencePapers.map((paper) => (
                 <div
-                  key={index}
+                  key={paper.id}
                   className="flex w-full flex-col gap-[5px] rounded-[10px] border border-gray-200 bg-white px-[16px] py-[10px]"
                 >
                   <p className="text-[13px] font-medium leading-normal text-gray-950">
-                    {paper.title}
+                    {paper.titleEn}
                   </p>
                   <p className="text-[10px] leading-normal text-gray-500">
                     {paper.summary}
@@ -294,10 +304,48 @@ export default function ReportPage() {
               ))}
             </div>
           </CollapsibleSection>
+
+          <p className="text-[10px] leading-normal text-gray-400">
+            {report.disclaimer}
+          </p>
         </div>
 
         <Navigator />
       </div>
+    </div>
+  )
+}
+
+function UsableProductCard({ item }: { item: ReportProductCard }) {
+  return (
+    <div className="flex w-full flex-col gap-[5px] rounded-[10px] border border-gray-200 bg-white px-[16px] py-[10px]">
+      <p className="text-[10px] leading-normal text-brand">{item.categoryPill}</p>
+      <p className="text-[15px] font-semibold leading-normal text-gray-950">
+        {item.name}
+      </p>
+      <p className="text-[10px] leading-normal text-gray-950">
+        <span className="text-brand">| </span>
+        {item.line}
+      </p>
+    </div>
+  )
+}
+
+function RestrictedProductCard({ item }: { item: ReportProductCard }) {
+  return (
+    <div className="flex w-full items-end justify-between gap-[11px] rounded-[10px] bg-gray-100 px-[16px] py-[10px]">
+      <div className="flex flex-col gap-[5px]">
+        <p className="text-[10px] leading-normal text-gray-500">{item.categoryPill}</p>
+        <p className="text-[15px] font-semibold leading-normal text-gray-950">
+          {item.name}
+        </p>
+        <p className="text-[10px] leading-normal text-gray-700">{item.line}</p>
+      </div>
+      {item.dDayLabel ? (
+        <span className="flex h-[23px] shrink-0 items-center justify-center rounded-[5px] bg-gray-400 px-[10px] text-[13px] font-medium text-white">
+          {item.dDayLabel}
+        </span>
+      ) : null}
     </div>
   )
 }

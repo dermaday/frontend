@@ -68,3 +68,8 @@ export async function createTreatment(
 
   return response.data
 }
+
+export async function listTreatments(): Promise<TreatmentResponse[]> {
+  const response = await apiRequest<TreatmentResponse[]>('/api/v1/treatments')
+  return response.data ?? []
+}

@@ -2,6 +2,10 @@ import skinCombination from '../assets/icons/skin-combination.svg'
 import skinDry from '../assets/icons/skin-dry.svg'
 import skinNormal from '../assets/icons/skin-normal.svg'
 import skinOily from '../assets/icons/skin-oily.svg'
+import skintypeResultCombination from '../assets/icons/skintype-result-combination.svg'
+import skintypeResultDry from '../assets/icons/skintype-result-dry.svg'
+import skintypeResultNormal from '../assets/icons/skintype-result-normal.svg'
+import skintypeResultOily from '../assets/icons/skintype-result-oily.svg'
 
 export type SkinType = 'dry' | 'normal' | 'oily' | 'combination'
 
@@ -60,6 +64,86 @@ export const SKIN_TYPE_META: SkinTypeMeta[] = [
     iconHeight: 65,
   },
 ]
+
+export interface SkinTypeResultMeta {
+  id: SkinType
+  /** 아이콘 위 옅은 회색 소제목 */
+  subtitle: string
+  label: string
+  icon: string
+  iconWidth: number
+  iconHeight: number
+  /** 수분 % */
+  moisture: number
+  /** 유분 % */
+  oil: number
+  /** "피부 특징" 박스에 들어가는 두 줄 */
+  features: [string, string]
+}
+
+/** Figma `결과지 - OO 피부` (node 899:13797 / 13798 / 13800 / 13801) */
+export const SKIN_TYPE_RESULT_META: SkinTypeResultMeta[] = [
+  {
+    id: 'normal',
+    subtitle: '유수분 밸런스가 완벽한',
+    label: '중성 피부',
+    icon: skintypeResultNormal,
+    iconWidth: 53,
+    iconHeight: 68,
+    moisture: 60,
+    oil: 50,
+    features: [
+      '유분과 수분의 균형이 안정적으로 유지되어 세안 후에도 당김이나 번들거림이 거의 없어요',
+      '피부결이 매끄럽고 모공이 도드라지지 않으며, 외부 자극이나 계절 변화에도 트러블이 잘 생기지 않아요',
+    ],
+  },
+  {
+    id: 'dry',
+    subtitle: '수분이 메마른 오아시스형',
+    label: '건성 피부',
+    icon: skintypeResultDry,
+    iconWidth: 53,
+    iconHeight: 68,
+    moisture: 20,
+    oil: 25,
+    features: [
+      '피부의 천연 보습 인자와 피지 분비가 부족해 세안 직후 극심한 속당김과 뻣뻣함을 느껴요',
+      '하얗게 각질이 잘 일어나 화장이 들뜨기 쉽고, 피부 윤기가 부족해 푸석해 보일 수 있어요',
+    ],
+  },
+  {
+    id: 'oily',
+    subtitle: '유분 폭발 에너지형',
+    label: '지성 피부',
+    icon: skintypeResultOily,
+    iconWidth: 52,
+    iconHeight: 67,
+    moisture: 35,
+    oil: 85,
+    features: [
+      '피지선 활동이 매우 활발하여 세안 후 얼마 지나지 않아 얼굴 전체에 번들거림과 유분기가 올라와요',
+      '과도한 피지 분비로 인해 모공이 넓어지기 쉽고, 피지가 모공을 막아 여드름 및 뾰루지 등의 트러블이 자주 발생해요',
+    ],
+  },
+  {
+    id: 'combination',
+    subtitle: '낮과 밤 반전형',
+    label: '복합성 피부',
+    icon: skintypeResultCombination,
+    iconWidth: 75,
+    iconHeight: 68,
+    moisture: 40,
+    oil: 70,
+    features: [
+      '이마와 코 중심의 T존은 피지 분비가 많아 번들거리는 반면, 뺨과 턱 중심의 U존은 건조함을 느끼는 복합적인 상태예요',
+      '계절과 일교차, 컨디션에 따라 유수분 편차가 심해 부위별로 트러블과 각질이 동시에 일어날 수 있어요',
+    ],
+  },
+]
+
+export function getSkinTypeResultMeta(id: SkinType): SkinTypeResultMeta {
+  return SKIN_TYPE_RESULT_META.find((entry) => entry.id === id) ?? SKIN_TYPE_RESULT_META[0]
+}
 
 export function getSkinTypeMeta(id: SkinType): SkinTypeMeta {
   return SKIN_TYPE_META.find((entry) => entry.id === id) ?? SKIN_TYPE_META[0]

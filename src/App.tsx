@@ -14,6 +14,8 @@ import AnalyzingPage from './procedurepages/loading'
 import SkinTypePage from './procedurepages/skintype'
 import SkinTypeTestPage from './procedurepages/skintypetest'
 import ProcedureStartPage from './procedurepages/start'
+import WhsLoadingPage from './procedurepages/whsLoading'
+import WhsResultPage from './procedurepages/whsResult'
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/auth/:provider/callback" element={<OAuthCallbackPage />} />
         <Route path="/procedurepages/start" element={<ProcedureStartPage />} />
+        <Route path="/procedurepages/whs/loading" element={<WhsLoadingPage />} />
+        <Route path="/procedurepages/whs/result" element={<WhsResultPage />} />
         <Route path="/procedurepages/skintype" element={<SkinTypePage />} />
         <Route
           path="/procedurepages/skintype/test"

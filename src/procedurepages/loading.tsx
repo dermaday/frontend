@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { createReport } from '../api/reports'
+import { listTreatments } from '../api/treatments'
 import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
+import { saveLastReport } from '../lib/procedureStore'
 
 /**
  * 진행 단계 문구. 시안(node 522:1026)대로 두 줄로 끊는다.
@@ -34,36 +37,53 @@ export default function AnalyzingPage() {
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [leaving, setLeaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const isLast = step === STEPS.length - 1
-
-  // 머무는 시간이 끝나면 현재 문구를 내보낸다
+  // 문구는 응답이 올 때까지 계속 순환한다
   useEffect(() => {
-    if (isLast) return
+    if (error) return
 
     const timer = window.setTimeout(() => setLeaving(true), HOLD_DURATION)
     return () => window.clearTimeout(timer)
-  }, [step, isLast])
+  }, [step, error])
 
-  // 다 빠져나간 뒤 다음 문구로 교체한다
   useEffect(() => {
     if (!leaving) return
 
     const timer = window.setTimeout(() => {
-      setStep((prev) => prev + 1)
+      setStep((prev) => (prev + 1) % STEPS.length)
       setLeaving(false)
     }, OUT_DURATION)
     return () => window.clearTimeout(timer)
   }, [leaving])
 
-  // TODO: 백엔드 연동 — 분석 요청을 보내고, 응답이 오면 리포트 화면으로 이동한다.
-  // 지금은 마지막 문구가 머무는 시간만큼 기다렸다가 보고서로 이동한다.
   useEffect(() => {
-    if (!isLast) return
+    let ignore = false
 
-    const timer = window.setTimeout(() => navigate('/report'), HOLD_DURATION)
-    return () => window.clearTimeout(timer)
-  }, [isLast, navigate])
+    async function generateReport() {
+      try {
+        const treatments = await listTreatments()
+        const latestTreatment = treatments[treatments.length - 1]
+        if (!latestTreatment) {
+          throw new Error('등록된 시술 기록이 없어요')
+        }
+
+        const report = await createReport({ treatmentRecordId: latestTreatment.id })
+
+        if (ignore) return
+        saveLastReport(report)
+        navigate('/report', { state: { report } })
+      } catch {
+        if (!ignore) setError('리포트를 만들지 못했어요. 다시 시도해주세요.')
+      }
+    }
+
+    void generateReport()
+
+    return () => {
+      ignore = true
+    }
+  }, [navigate])
 
   const [firstLine, secondLine] = STEPS[step]
 
@@ -71,51 +91,68 @@ export default function AnalyzingPage() {
     <MobileScreen>
       {/* 시안상 블록 중심이 화면 중앙보다 12px 위 → pb로 보정 */}
       <div className="flex w-full flex-1 flex-col items-center justify-center pb-[24px]">
-        <div
-          className="relative h-[150px] w-[150px]"
-          role="progressbar"
-          aria-label="분석 중"
-        >
-          {Array.from({ length: DOT_COUNT }, (_, index) => (
-            // 자리는 고정. 안쪽 점이 커졌다 작아지면서 큰 점이 돌아가는 것처럼 보인다
-            <span
-              key={index}
-              className="absolute left-1/2 top-1/2 block"
-              style={{
-                width: DOT_SIZE,
-                height: DOT_SIZE,
-                marginLeft: -DOT_SIZE / 2,
-                marginTop: -DOT_SIZE / 2,
-                transform: `rotate(${
-                  (index * 360) / DOT_COUNT
-                }deg) translateY(-${RING_RADIUS}px)`,
-              }}
+        {error ? (
+          <div className="flex flex-col items-center gap-[16px]">
+            <p className="text-center text-[16px] font-semibold text-gray-700">
+              {error}
+            </p>
+            <button
+              type="button"
+              className="text-[14px] font-semibold text-brand underline"
+              onClick={() => navigate(-1)}
             >
-              <span
-                // 로딩 표시는 멈추면 의미가 없으므로 reduce-motion에서도 계속 돈다
-                className="block h-full w-full animate-dot-fade rounded-full bg-brand"
-                style={{
-                  animationDelay: `${-(index * SPIN_DURATION) / DOT_COUNT}ms`,
-                }}
-              />
-            </span>
-          ))}
-        </div>
+              돌아가기
+            </button>
+          </div>
+        ) : (
+          <>
+            <div
+              className="relative h-[150px] w-[150px]"
+              role="progressbar"
+              aria-label="분석 중"
+            >
+              {Array.from({ length: DOT_COUNT }, (_, index) => (
+                // 자리는 고정. 안쪽 점이 커졌다 작아지면서 큰 점이 돌아가는 것처럼 보인다
+                <span
+                  key={index}
+                  className="absolute left-1/2 top-1/2 block"
+                  style={{
+                    width: DOT_SIZE,
+                    height: DOT_SIZE,
+                    marginLeft: -DOT_SIZE / 2,
+                    marginTop: -DOT_SIZE / 2,
+                    transform: `rotate(${
+                      (index * 360) / DOT_COUNT
+                    }deg) translateY(-${RING_RADIUS}px)`,
+                  }}
+                >
+                  <span
+                    // 로딩 표시는 멈추면 의미가 없으므로 reduce-motion에서도 계속 돈다
+                    className="block h-full w-full animate-dot-fade rounded-full bg-brand"
+                    style={{
+                      animationDelay: `${-(index * SPIN_DURATION) / DOT_COUNT}ms`,
+                    }}
+                  />
+                </span>
+              ))}
+            </div>
 
-        <p
-          // key가 바뀌면 다시 마운트되면서 등장 애니메이션이 재생된다
-          key={step}
-          aria-live="polite"
-          className={[
-            'text-center text-[24px] font-bold leading-normal text-black',
-            leaving ? 'animate-step-out' : 'animate-step-in',
-            'motion-reduce:animate-none',
-          ].join(' ')}
-        >
-          {firstLine}
-          <br />
-          {secondLine}
-        </p>
+            <p
+              // key가 바뀌면 다시 마운트되면서 등장 애니메이션이 재생된다
+              key={step}
+              aria-live="polite"
+              className={[
+                'text-center text-[24px] font-bold leading-normal text-black',
+                leaving ? 'animate-step-out' : 'animate-step-in',
+                'motion-reduce:animate-none',
+              ].join(' ')}
+            >
+              {firstLine}
+              <br />
+              {secondLine}
+            </p>
+          </>
+        )}
       </div>
 
       <HomeIndicator className="h-[38px]" />

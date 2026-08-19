@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import answerYesIcon from '../assets/icons/answer-yes.svg'
+import skintypeResultCard from '../assets/icons/skintype-result-card.svg'
 import { DownUpText, LeftRightText } from '../components/AnimatedText'
 import Button from '../components/Button'
 import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
 import TopAppBar from '../components/TopAppBar'
 import {
-  getSkinTypeMeta,
+  getSkinTypeResultMeta,
   nextSkinTypeTestCell,
   SKIN_TYPE_TEST_GRID,
   SKIN_TYPE_TEST_START,
@@ -189,36 +190,90 @@ interface SkinTypeResultModalProps {
   onConfirm: () => void
 }
 
-/** 진단 결과 안내 모달 (node 726:1485 완료 상태) */
+/** 진단 결과 안내 모달 (node 899:13797 / 13798 / 13800 / 13801) */
 function SkinTypeResultModal({ skinType, onConfirm }: SkinTypeResultModalProps) {
-  const meta = getSkinTypeMeta(skinType)
+  const meta = getSkinTypeResultMeta(skinType)
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center">
       <div className="relative flex w-full max-w-[402px] items-center justify-center bg-gray-950/50 px-[25px]">
-        <div className="relative flex w-full flex-col items-center gap-[20px] rounded-[13px] bg-white px-[24px] py-[32px] shadow-lg">
-          <img
-            src={meta.icon}
-            alt=""
-            width={meta.iconWidth}
-            height={meta.iconHeight}
-            className="block"
-            style={{ width: meta.iconWidth, height: meta.iconHeight }}
-          />
+        <div
+          className="relative flex w-full max-w-[352px] flex-col items-center gap-[30px] bg-contain bg-center bg-no-repeat px-[28px] py-[18px] shadow-lg"
+          style={{ backgroundImage: `url(${skintypeResultCard})` }}
+        >
+          <div className="flex w-full flex-col items-center gap-[20px]">
+            <div className="flex h-[135px] w-[135px] items-center justify-center rounded-full bg-brand/10">
+              <img
+                src={meta.icon}
+                alt=""
+                width={meta.iconWidth}
+                height={meta.iconHeight}
+                className="block"
+                style={{ width: meta.iconWidth, height: meta.iconHeight }}
+              />
+            </div>
+            <div className="flex flex-col items-center gap-0 text-center">
+              <p className="text-[15px] font-semibold leading-normal text-gray-500">
+                {meta.subtitle}
+              </p>
+              <p className="text-[24px] font-bold leading-normal text-black">
+                {meta.label}
+              </p>
+            </div>
+          </div>
 
-          <div className="flex flex-col items-center gap-[8px] text-center">
-            <p className="text-[20px] font-bold leading-normal text-black">
-              {meta.label} 피부예요
-            </p>
-            <p className="whitespace-pre-line text-[13px] font-medium leading-normal text-gray-500">
-              {meta.description}
-            </p>
+          <div className="h-0 w-full border-t border-dashed border-gray-200" />
+
+          <div className="flex w-full flex-col gap-[30px]">
+            <div className="flex w-full flex-col gap-[10px]">
+              <PercentBar label="수분" percent={meta.moisture} />
+              <PercentBar label="유분" percent={meta.oil} />
+            </div>
+
+            <div className="flex w-full flex-col gap-[5px]">
+              <p className="text-[13px] font-medium leading-normal text-black">
+                피부 특징
+              </p>
+              <div className="flex w-full flex-col gap-[5px] rounded-[10px] bg-gray-100 px-[15px] py-[13px]">
+                {meta.features.map((line) => (
+                  <p
+                    key={line}
+                    className="text-[10px] font-medium leading-normal text-black"
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
+            </div>
           </div>
 
           <Button variant="brand" onClick={onConfirm}>
             확인
           </Button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+interface PercentBarProps {
+  label: string
+  percent: number
+}
+
+/** 수분 · 유분 퍼센트 바 (node 899:13648 계열) */
+function PercentBar({ label, percent }: PercentBarProps) {
+  return (
+    <div className="flex w-full flex-col gap-[17px]">
+      <div className="flex w-full items-center justify-between text-[15px] font-semibold leading-normal">
+        <span className="text-black">{label}</span>
+        <span className="text-brand">{percent}%</span>
+      </div>
+      <div className="h-[4px] w-full overflow-hidden rounded-full bg-gray-200">
+        <div
+          className="h-full rounded-full bg-brand"
+          style={{ width: `${percent}%` }}
+        />
       </div>
     </div>
   )

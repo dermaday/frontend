@@ -9,6 +9,11 @@ export interface SkinProfileResponse {
   updatedAt: string
 }
 
+export async function getSkinProfile(): Promise<SkinProfileResponse | null> {
+  const response = await apiRequest<SkinProfileResponse>('/api/v1/skin-profile')
+  return response.data ?? null
+}
+
 export async function upsertSkinProfile(
   skinType: SkinTypeCode,
 ): Promise<SkinProfileResponse> {

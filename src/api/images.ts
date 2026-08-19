@@ -45,3 +45,21 @@ export async function uploadImage(file: File): Promise<string> {
 
   return presigned.objectKey
 }
+
+export interface PresignedDownloadResponse {
+  downloadUrl: string
+  expiresAt: string
+}
+
+/** objectKey로 등록해둔 이미지를 보여줄 때 쓰는 다운로드 URL을 발급받는다. */
+export async function getDownloadUrl(objectKey: string): Promise<string> {
+  const response = await apiRequest<PresignedDownloadResponse>(
+    `/api/v1/images/presigned-download?objectKey=${encodeURIComponent(objectKey)}`,
+  )
+
+  if (!response.data) {
+    throw new Error('Presigned download response is empty')
+  }
+
+  return response.data.downloadUrl
+}

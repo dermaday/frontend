@@ -7,7 +7,7 @@ import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
 import TopAppBar from '../components/TopAppBar'
 
-/** Figma `O-01 시술 등록 선택` (node 410:2251) */
+/** Figma `정보 등록 방법 선택` (node 899:10168) */
 export default function ProcedureStartPage() {
   const navigate = useNavigate()
   const { member } = useAuth()
@@ -40,8 +40,8 @@ export default function ProcedureStartPage() {
         <Button variant="brand" onClick={() => navigate('/procedurepages/skintype')}>
           시작하기
         </Button>
-        <Button variant="outline" onClick={() => navigate('/procedurepages/choice')}>
-          건너뛰기
+        <Button variant="outline" onClick={() => navigate('/procedurepages/whs/loading')}>
+          WHS 정보 불러오기
         </Button>
       </div>
 

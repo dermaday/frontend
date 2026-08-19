@@ -14,6 +14,7 @@ import MobileScreen from '../components/MobileScreen'
 import TopAppBar from '../components/TopAppBar'
 import { getSelectedProcedures, saveSelectedCosmetics } from '../lib/procedureStore'
 import {
+  getProductTypeDefaultImage,
   INGREDIENT_CODE_MAP,
   INGREDIENT_GROUPS,
   INGREDIENT_GUIDE,
@@ -246,6 +247,14 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
               height={80}
               className="block h-[80px] w-[80px] shrink-0 rounded-[10px] object-cover"
             />
+          ) : productType ? (
+            <img
+              src={getProductTypeDefaultImage(productType)}
+              alt=""
+              width={80}
+              height={80}
+              className="block h-[80px] w-[80px] shrink-0 rounded-[10px] object-cover"
+            />
           ) : null}
 
           <button
@@ -434,17 +443,13 @@ function ProductCard({ product, onDelete }: ProductCardProps) {
   return (
     <div className="flex h-[100px] w-full items-start justify-between rounded-[10px] border border-gray-200 bg-white p-[10px]">
       <div className="flex items-center gap-[10px]">
-        {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt=""
-            width={80}
-            height={80}
-            className="block h-[80px] w-[80px] shrink-0 rounded-[10px] object-cover"
-          />
-        ) : (
-          <span className="block h-[80px] w-[80px] shrink-0 rounded-[10px] bg-gray-100" />
-        )}
+        <img
+          src={product.imageUrl ?? getProductTypeDefaultImage(product.productType)}
+          alt=""
+          width={80}
+          height={80}
+          className="block h-[80px] w-[80px] shrink-0 rounded-[10px] object-cover"
+        />
 
         <div className="flex flex-col gap-[13px]">
           <div className="flex flex-col gap-[2px]">
