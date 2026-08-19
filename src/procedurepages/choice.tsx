@@ -8,6 +8,7 @@ import MobileScreen from '../components/MobileScreen'
 import ProcedureItem from '../components/ProcedureItem'
 import SearchField from '../components/SearchField'
 import TopAppBar from '../components/TopAppBar'
+import { saveSelectedProcedures, type ProcedureCondition } from '../lib/procedureStore'
 import ProcedureDateModal from './date'
 import { formatProcedureDate, PROCEDURE_CATEGORIES } from './procedureData'
 import type { Procedure, SelectedProcedure } from './procedureData'
@@ -58,12 +59,11 @@ export default function ProcedureChoicePage() {
   }
 
   const handleSubmit = () => {
-    // TODO: 백엔드 연동 — 선택한 시술 목록을 서버로 전송한다.
-    // await api.post('/procedures', { procedures: selected })
+    saveSelectedProcedures(selected)
     navigate('/procedurepages/cosmetic')
   }
 
-  const handleConfirmDate = () => {
+  const handleConfirmDate = (condition: ProcedureCondition) => {
     if (!pending) return
 
     setSelected((prev) => [
@@ -72,6 +72,8 @@ export default function ProcedureChoicePage() {
         id: pending.id,
         name: pending.name,
         date: formatProcedureDate(pendingDate),
+        condition,
+        treatmentType: pending.treatmentType,
       },
     ])
     setPending(null)
@@ -111,9 +113,11 @@ export default function ProcedureChoicePage() {
                   >
                     <ProcedureItem
                       name={item.name}
+                      detail={item.detail}
                       beta={item.beta}
                       selected={Boolean(picked)}
                       date={picked?.date}
+                      condition={picked?.condition}
                       onToggle={() => handleToggle(item)}
                     />
                   </DownUpText>
@@ -146,3 +150,4 @@ export default function ProcedureChoicePage() {
     </>
   )
 }
+  

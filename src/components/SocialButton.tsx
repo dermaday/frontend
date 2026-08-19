@@ -1,9 +1,8 @@
 import type { ButtonHTMLAttributes } from 'react'
-import googleMark from '../assets/icons/google-mark.svg'
 import kakaoMark from '../assets/icons/kakao-mark.svg'
 import naverMark from '../assets/icons/naver-mark.svg'
 
-export type SocialProvider = 'kakao' | 'naver' | 'google'
+export type SocialProvider = 'kakao' | 'naver'
 
 export interface SocialButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -27,17 +26,9 @@ const PROVIDER = {
     iconClass: 'h-[20px] w-[20px]',
     className: 'bg-naver text-white',
   },
-  google: {
-    label: 'Google로 계속하기',
-    icon: googleMark,
-    iconWidth: 21,
-    iconHeight: 22,
-    iconClass: 'h-[21.677px] w-[21.313px]',
-    className: 'border-2 border-gray-200 bg-white text-gray-950',
-  },
 } as const
 
-/** Figma `카카오 / 네이버 / Google로 계속하기` (node 273:724, 273:725, 273:730) */
+/** Figma `카카오 / 네이버로 계속하기` (node 273:724, 273:725) */
 export default function SocialButton({
   provider,
   type = 'button',

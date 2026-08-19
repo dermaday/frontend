@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { createCosmetic, type ProductType } from '../api/cosmetics'
+import { uploadImage } from '../api/images'
+import { createTreatment } from '../api/treatments'
 import alertCircleIcon from '../assets/icons/alert-circle.svg'
 import cameraIcon from '../assets/icons/camera.svg'
 import closeIcon from '../assets/icons/close.svg'
@@ -9,9 +12,13 @@ import Button from '../components/Button'
 import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
 import TopAppBar from '../components/TopAppBar'
+import { getSelectedProcedures, saveSelectedCosmetics } from '../lib/procedureStore'
 import {
+  INGREDIENT_CODE_MAP,
   INGREDIENT_GROUPS,
   INGREDIENT_GUIDE,
+  PRODUCT_TYPE_OPTIONS,
+  toIsoDate,
   type CosmeticProduct,
 } from './procedureData'
 
@@ -26,31 +33,68 @@ export default function CosmeticPage() {
   const navigate = useNavigate()
   const [products, setProducts] = useState<CosmeticProduct[]>([])
   const [formOpen, setFormOpen] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const handleAdd = (product: CosmeticProduct) => {
     setProducts((prev) => [...prev, product])
     setFormOpen(false)
   }
 
-  const handleSubmit = () => {
-    // TODO: 백엔드 연동 — 등록한 화장품 목록을 서버로 전송한다.
-    // await api.post('/cosmetics', { products })
+  const handleSubmit = async () => {
+    if (submitting) return
+
+    const procedures = getSelectedProcedures()
+    if (procedures.length === 0) {
+      setSubmitError('선택된 시술이 없어요. 이전 단계부터 다시 진행해주세요.')
+      return
+    }
+
+    setSubmitting(true)
+    setSubmitError(null)
+
+    try {
+      // 시술 선택 단계에서는 저장만 해두고, 여기서 선택 완료를 눌러야 실제로 서버에 등록한다.
+      const treatment = await createTreatment(
+        procedures.map((entry) => ({
+          treatmentType: entry.treatmentType,
+          treatedOn: toIsoDate(entry.date),
+          reaction: entry.condition === 'irritated' ? 'IRRITATED' : 'COMFORTABLE',
+        })),
+      )
+
+      for (const product of products) {
+        const imageObjectKey = product.imageFile
+          ? await uploadImage(product.imageFile)
+          : undefined
+
+        const ingredients = [
+          ...new Set(
+            product.ingredients.map((label) => INGREDIENT_CODE_MAP[label]),
+          ),
+        ]
+
+        await createCosmetic({
+          treatmentRecordId: treatment.id,
+          name: product.name,
+          productType: product.productType,
+          ingredients,
+          imageObjectKey,
+        })
+      }
+
+      saveSelectedCosmetics(products.map((product) => product.name))
+      navigate('/procedurepages/loading')
+    } catch {
+      setSubmitError('등록에 실패했어요. 다시 시도해주세요.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
     <MobileScreen>
-      <TopAppBar
-        onBack={() => navigate(-1)}
-        right={
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="text-[15px] font-semibold leading-none text-gray-600"
-          >
-            건너뛰기
-          </button>
-        }
-      />
+      <TopAppBar onBack={() => navigate(-1)} />
 
       <h1 className="w-full text-[24px] font-bold leading-normal text-black">
         <LeftRightText>지금 쓰시는 화장품을 골라주세요</LeftRightText>
@@ -90,8 +134,17 @@ export default function CosmeticPage() {
           </div>
 
           <div className="mt-auto w-full pt-[40px]">
-            <Button variant="brand" onClick={handleSubmit}>
-              선택 완료
+            {submitError ? (
+              <p className="w-full pb-[8px] text-center text-[13px] font-medium text-red-500">
+                {submitError}
+              </p>
+            ) : null}
+            <Button
+              variant="brand"
+              disabled={submitting}
+              onClick={handleSubmit}
+            >
+              {submitting ? '등록 중...' : '선택 완료'}
             </Button>
           </div>
         </div>
@@ -111,7 +164,9 @@ interface CosmeticFormProps {
 function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [imageUrl, setImageUrl] = useState<string>()
+  const [imageFile, setImageFile] = useState<File>()
   const [name, setName] = useState('')
+  const [productType, setProductType] = useState<ProductType>()
   const [ingredients, setIngredients] = useState<string[]>([])
   const [guideOpen, setGuideOpen] = useState(false)
 
@@ -124,6 +179,7 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
 
   const handlePickImage = (file: File | undefined) => {
     if (!file) return
+    setImageFile(file)
     setImageUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev)
       return URL.createObjectURL(file)
@@ -138,10 +194,11 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
     )
   }
 
-  const canAdd = name.trim().length > 0 && ingredients.length > 0
+  const canAdd =
+    name.trim().length > 0 && ingredients.length > 0 && Boolean(productType)
 
   const handleAdd = () => {
-    if (!canAdd) return
+    if (!canAdd || !productType) return
 
     const category =
       SAFE_GROUP.items.find((item) => ingredients.includes(item)) ?? '기타'
@@ -150,7 +207,9 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
       id: crypto.randomUUID(),
       name: name.trim(),
       imageUrl,
+      imageFile,
       ingredients,
+      productType,
       category,
     })
   }
@@ -230,6 +289,35 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
           aria-label="제품명"
           className="h-[45px] w-full rounded-[10px] bg-gray-100 px-[14px] text-[13px] font-medium leading-none text-gray-950 outline-none placeholder:text-gray-400"
         />
+      </section>
+
+      <section className="flex w-[300px] shrink-0 flex-col gap-[11px]">
+        <h2 className="flex items-center gap-[3px] text-[18px] font-semibold leading-normal text-black">
+          제품 종류
+          <span className="text-[15px] text-brand">*</span>
+        </h2>
+        <div className="flex flex-wrap items-center gap-[5px]">
+          {PRODUCT_TYPE_OPTIONS.map((option) => {
+            const active = productType === option.code
+            return (
+              <button
+                key={option.code}
+                type="button"
+                onClick={() => setProductType(option.code)}
+                aria-pressed={active}
+                className={[
+                  'flex h-[30px] items-center justify-center rounded-[10px] border px-[15px]',
+                  'text-[13px] font-medium leading-none text-black',
+                  active
+                    ? 'border-brand bg-brand/20'
+                    : 'border-gray-200 bg-white',
+                ].join(' ')}
+              >
+                {option.name}
+              </button>
+            )
+          })}
+        </div>
       </section>
 
       <section className="flex w-[300px] shrink-0 flex-col gap-[14px]">

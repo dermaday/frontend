@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../api/AuthContext'
 import welcomeImage from '../assets/images/welcome.png'
 import { DownUpText, LeftRightText } from '../components/AnimatedText'
 import Button from '../components/Button'
@@ -9,15 +10,15 @@ import TopAppBar from '../components/TopAppBar'
 /** Figma `O-01 시술 등록 선택` (node 410:2251) */
 export default function ProcedureStartPage() {
   const navigate = useNavigate()
+  const { member } = useAuth()
 
-  // TODO: 백엔드 연동 — 로그인한 사용자 이름을 받아 온다.
-  const userName = 'OOO'
+  const userName = member?.displayName ?? 'OOO'
 
   return (
     <MobileScreen>
       <TopAppBar onBack={() => navigate(-1)} />
 
-      <div className="mt-[25px] flex w-full flex-col gap-[10px]">
+      <div className="flex w-full flex-col gap-[10px]">
         <h1 className="w-[259px] text-[32px] font-extrabold leading-normal text-black">
           <LeftRightText>환영합니다 {userName}님!</LeftRightText>
         </h1>
@@ -36,7 +37,7 @@ export default function ProcedureStartPage() {
           className="block h-[216px] w-[324px] -scale-x-100 object-cover"
         />
 
-        <Button variant="brand" onClick={() => navigate('/procedurepages/choice')}>
+        <Button variant="brand" onClick={() => navigate('/procedurepages/skintype')}>
           시작하기
         </Button>
         <Button variant="outline" onClick={() => navigate('/procedurepages/choice')}>

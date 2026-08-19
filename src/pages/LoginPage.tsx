@@ -1,20 +1,21 @@
-import { useNavigate } from 'react-router-dom'
 import { DownUpText, LeftRightText } from '../components/AnimatedText'
 import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
 import SocialButton from '../components/SocialButton'
 import { SPLASH_VISIBLE_DURATION } from '../components/SplashOverlay'
 import Wordmark from '../components/Wordmark'
+import { startOAuthLogin } from '../api/auth'
+import { useNavigate } from 'react-router-dom'
 
 /** 등장 애니메이션 길이 (ms) */
 const INTRO_DURATION = 1500
 
 /** Figma `A-01 로그인` (node 410:2269) */
 export default function LoginPage() {
+  // 백엔드 인가 시작 URL로 이동한다. 로그인 완료 후 쿠키 발급 → /auth/:provider/callback으로 돌아온다.
+  const handleKakaoLogin = () => startOAuthLogin('kakao')
+  const handleNaverLogin = () => startOAuthLogin('naver')
   const navigate = useNavigate()
-
-  // TODO: 백엔드 연동 — 소셜 로그인 후 발급된 토큰을 저장한다.
-  const handleLogin = () => navigate('/procedurepages/start')
 
   return (
     <MobileScreen>
@@ -41,9 +42,11 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-auto flex w-full flex-col gap-[15px]">
-          <SocialButton provider="kakao" onClick={handleLogin} />
-          <SocialButton provider="naver" onClick={handleLogin} />
-          <SocialButton provider="google" onClick={handleLogin} />
+          <SocialButton provider="kakao" onClick={handleKakaoLogin} />
+          <SocialButton provider="naver" onClick={handleNaverLogin} />
+          <button onClick={() => navigate('/procedurepages/start')} className="rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-700 hover:bg-gray-300">
+            개발자 모드
+          </button>
         </div>
       </div>
 
