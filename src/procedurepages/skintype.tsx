@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { upsertSkinProfile } from '../api/skinProfile'
 import chevronLeftIcon from '../assets/icons/chevron-left.svg'
 import { DownUpText, LeftRightText } from '../components/AnimatedText'
 import BottomActionBar from '../components/BottomActionBar'
@@ -7,7 +8,8 @@ import Button from '../components/Button'
 import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
 import TopAppBar from '../components/TopAppBar'
-import { SKIN_TYPE_META, type SkinType } from './skinTypeData'
+import { saveSelectedSkinType } from '../lib/procedureStore'
+import { SKIN_TYPE_CODE_MAP, SKIN_TYPE_META, type SkinType } from './skinTypeData'
 
 /** 카드 등장 애니메이션 (ms) */
 const CARD_INTRO_DELAY = 300
@@ -27,12 +29,24 @@ export default function SkinTypePage() {
   const [selected, setSelected] = useState<SkinType | null>(
     state?.resultType ?? null,
   )
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const handleSubmit = () => {
-    if (!selected) return
-    // TODO: 백엔드 연동 — 선택한 피부타입을 서버로 전송한다.
-    // await api.post('/skin-type', { skinType: selected })
-    navigate('/procedurepages/choice')
+  const handleSubmit = async () => {
+    if (!selected || submitting) return
+
+    setSubmitting(true)
+    setSubmitError(null)
+
+    try {
+      await upsertSkinProfile(SKIN_TYPE_CODE_MAP[selected])
+      saveSelectedSkinType(selected)
+      navigate('/procedurepages/choice')
+    } catch {
+      setSubmitError('피부타입 저장에 실패했어요. 다시 시도해주세요.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -110,8 +124,17 @@ export default function SkinTypePage() {
       </div>
 
       <BottomActionBar>
-        <Button variant="brand" disabled={!selected} onClick={handleSubmit}>
-          선택 완료
+        {submitError ? (
+          <p className="w-full pb-[8px] text-center text-[13px] font-medium text-red-500">
+            {submitError}
+          </p>
+        ) : null}
+        <Button
+          variant="brand"
+          disabled={!selected || submitting}
+          onClick={handleSubmit}
+        >
+          {submitting ? '저장 중...' : '선택 완료'}
         </Button>
       </BottomActionBar>
 

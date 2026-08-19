@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
 
@@ -30,6 +31,7 @@ const SPIN_DURATION = 1200
 
 /** Figma `리포트 생성 로딩 (light)` (node 522:954) */
 export default function AnalyzingPage() {
+  const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [leaving, setLeaving] = useState(false)
 
@@ -55,9 +57,13 @@ export default function AnalyzingPage() {
   }, [leaving])
 
   // TODO: 백엔드 연동 — 분석 요청을 보내고, 응답이 오면 리포트 화면으로 이동한다.
-  // useEffect(() => {
-  //   api.post('/analysis').then(() => navigate('/procedurepages/report'))
-  // }, [])
+  // 지금은 마지막 문구가 머무는 시간만큼 기다렸다가 보고서로 이동한다.
+  useEffect(() => {
+    if (!isLast) return
+
+    const timer = window.setTimeout(() => navigate('/report'), HOLD_DURATION)
+    return () => window.clearTimeout(timer)
+  }, [isLast, navigate])
 
   const [firstLine, secondLine] = STEPS[step]
 

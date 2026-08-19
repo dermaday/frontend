@@ -1,51 +1,48 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { exchangeOAuthCode } from '../lib/authApi'
-import { consumeOAuthState, type OAuthProvider } from '../lib/oauth'
-import { saveAccessToken } from '../lib/session'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useAuth } from '../api/AuthContext'
 import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
 
-function isOAuthProvider(value: string | undefined): value is OAuthProvider {
-  return value === 'kakao' || value === 'naver'
+const ERROR_MESSAGES: Record<string, string> = {
+  access_denied: '소셜 로그인 동의가 취소됐어요.',
+  missing_required_profile: '필수 회원 정보 제공에 동의해야 해요.',
+  oauth2_login_failed: '소셜 로그인에 실패했어요. 다시 시도해 주세요.',
 }
 
 /**
- * 카카오/네이버 인가 콜백 화면.
- * redirect_uri로 돌아온 code/state를 백엔드(POST /api/auth/:provider)로 전달해
- * 토큰 교환을 위임하고, 발급받은 access token을 저장한다.
+ * 카카오/네이버 로그인 콜백 화면.
+ * JWT는 백엔드가 HttpOnly 쿠키로 이미 발급한 뒤 이 경로로 이동시킨 것이므로,
+ * 여기서는 code를 교환하지 않고 `/api/v1/members/me`로 로그인 성공 여부만 확인한다.
  */
 export default function OAuthCallbackPage() {
-  const { provider } = useParams<{ provider: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { refreshMember } = useAuth()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // 경로가 잘못됐거나 사용자가 인가를 취소한 경우: 조용히 로그인 화면으로 돌려보낸다.
-    if (!isOAuthProvider(provider) || searchParams.get('error')) {
-      navigate('/login', { replace: true })
+    let ignore = false
+
+    const errorCode = searchParams.get('error')
+    if (errorCode) {
+      setError(ERROR_MESSAGES[errorCode] ?? ERROR_MESSAGES.oauth2_login_failed)
       return
     }
 
-    const code = searchParams.get('code')
-    const state = searchParams.get('state')
-    const savedState = consumeOAuthState(provider)
-
-    if (!code || !state || state !== savedState) {
-      navigate('/login', { replace: true })
-      return
-    }
-
-    exchangeOAuthCode(provider, code, state)
-      .then(({ accessToken }) => {
-        saveAccessToken(accessToken)
+    refreshMember().then((member) => {
+      if (ignore) return
+      if (member) {
         navigate('/procedurepages/start', { replace: true })
-      })
-      .catch(() => {
-        setError('로그인에 실패했어요. 다시 시도해 주세요.')
-      })
-  }, [provider, searchParams, navigate])
+      } else {
+        setError('로그인 쿠키를 확인할 수 없어요. 다시 로그인해 주세요.')
+      }
+    })
+
+    return () => {
+      ignore = true
+    }
+  }, [searchParams, refreshMember, navigate])
 
   return (
     <MobileScreen>

@@ -5,6 +5,17 @@ import skinOily from '../assets/icons/skin-oily.svg'
 
 export type SkinType = 'dry' | 'normal' | 'oily' | 'combination'
 
+/** SkinType → POST/PUT /api/v1/skin-profile 에 보낼 코드 */
+export const SKIN_TYPE_CODE_MAP: Record<
+  SkinType,
+  'DRY' | 'NORMAL' | 'OILY' | 'COMBINATION'
+> = {
+  dry: 'DRY',
+  normal: 'NORMAL',
+  oily: 'OILY',
+  combination: 'COMBINATION',
+}
+
 export interface SkinTypeMeta {
   id: SkinType
   label: string

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../api/AuthContext'
 import welcomeImage from '../assets/images/welcome.png'
 import { DownUpText, LeftRightText } from '../components/AnimatedText'
 import Button from '../components/Button'
@@ -9,9 +10,9 @@ import TopAppBar from '../components/TopAppBar'
 /** Figma `O-01 시술 등록 선택` (node 410:2251) */
 export default function ProcedureStartPage() {
   const navigate = useNavigate()
+  const { member } = useAuth()
 
-  // TODO: 백엔드 연동 — 로그인한 사용자 이름을 받아 온다.
-  const userName = 'OOO'
+  const userName = member?.displayName ?? 'OOO'
 
   return (
     <MobileScreen>
