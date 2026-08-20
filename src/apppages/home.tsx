@@ -154,6 +154,26 @@ export default function HomePage() {
             onMenuClick={() => setMenuOpen(true)}
           />
 
+          {isBasicCare && report.basicCareAlert ? (
+            <div className="flex w-full flex-col gap-[5px] rounded-[10px] bg-[#e64240]/20 px-[18px] py-[17px]">
+              <p className="text-[15px] font-semibold leading-normal text-gray-950">
+                ⚠️ {report.basicCareAlert.title}
+              </p>
+              <p className="text-[10px] leading-normal text-gray-700">
+                {report.basicCareAlert.body}
+                {report.basicCareAlert.riskGroups.length > 0 ? (
+                  <>
+                    <br />
+                    <span className="text-[#e64240]">
+                      {report.basicCareAlert.riskGroups.join(' / ')}
+                    </span>{' '}
+                    성분이 포함된 화장품은 사용할 수 없어요
+                  </>
+                ) : null}
+              </p>
+            </div>
+          ) : null}
+
           {showHeroBanner && bannerProduct ? (
             <HeroBanner product={bannerProduct} line={report.header.line} />
           ) : null}
@@ -171,46 +191,56 @@ export default function HomePage() {
             )}
           </section>
 
-          <section className="flex w-full flex-col gap-[10px]">
-            <p className="text-[18px] font-bold leading-normal text-gray-950">
-              사용 가능한 화장품
-            </p>
-            {usable.length === 0 ? (
-              <EmptyBox text="사용 가능한 화장품이 없어요" />
-            ) : (
-              <div className="flex w-full gap-[10px] overflow-x-auto pb-[4px]">
-                {usable.map((item, index) => (
-                  <UsableCosmeticCard key={index} item={item} image={imagesByName[item.name]} />
-                ))}
-              </div>
-            )}
-          </section>
+          {isBasicCare ? null : (
+            <>
+              <section className="flex w-full flex-col gap-[10px]">
+                <p className="text-[18px] font-bold leading-normal text-gray-950">
+                  사용 가능한 화장품
+                </p>
+                {usable.length === 0 ? (
+                  <EmptyBox text="사용 가능한 화장품이 없어요" />
+                ) : (
+                  <div className="flex w-full gap-[10px] overflow-x-auto pb-[4px]">
+                    {usable.map((item, index) => (
+                      <UsableCosmeticCard
+                        key={index}
+                        item={item}
+                        image={imagesByName[item.name]}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
 
-          <section className="flex w-full flex-col gap-[10px]">
-            <button
-              type="button"
-              onClick={() => setRestrictedOpen((prev) => !prev)}
-              className="flex w-full items-center justify-between"
-            >
-              <span className="text-[18px] font-bold leading-normal text-gray-950">
-                사용 불가능한 화장품
-              </span>
-              {restricted.length > 0 ? (
-                <ChevronDownIcon className={restrictedOpen ? '' : 'rotate-180'} />
-              ) : null}
-            </button>
-            {restrictedOpen ? (
-              restricted.length === 0 ? (
-                <EmptyBox text={report.products.allUnlockedLine || '모든 화장품이 해금되었어요'} />
-              ) : (
-                <div className="flex w-full flex-col gap-[10px]">
-                  {restricted.map((item, index) => (
-                    <RestrictedCosmeticRow key={index} item={item} />
-                  ))}
-                </div>
-              )
-            ) : null}
-          </section>
+              <section className="flex w-full flex-col gap-[10px]">
+                <button
+                  type="button"
+                  onClick={() => setRestrictedOpen((prev) => !prev)}
+                  className="flex w-full items-center justify-between"
+                >
+                  <span className="text-[18px] font-bold leading-normal text-gray-950">
+                    사용 불가능한 화장품
+                  </span>
+                  {restricted.length > 0 ? (
+                    <ChevronDownIcon className={restrictedOpen ? '' : 'rotate-180'} />
+                  ) : null}
+                </button>
+                {restrictedOpen ? (
+                  restricted.length === 0 ? (
+                    <EmptyBox
+                      text={report.products.allUnlockedLine || '모든 화장품이 해금되었어요'}
+                    />
+                  ) : (
+                    <div className="flex w-full flex-col gap-[10px]">
+                      {restricted.map((item, index) => (
+                        <RestrictedCosmeticRow key={index} item={item} />
+                      ))}
+                    </div>
+                  )
+                ) : null}
+              </section>
+            </>
+          )}
 
           <section className="flex w-full flex-col gap-[10px]">
             <p className="text-[18px] font-bold leading-normal text-gray-950">세안 후 루틴</p>

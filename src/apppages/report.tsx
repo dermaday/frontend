@@ -64,6 +64,7 @@ export default function ReportPage() {
     report.products.usable,
     report.products.restricted,
   )
+  const isBasicCare = report.header.status === 'BASIC_CARE'
 
   const handlePreviewRoutine = async () => {
     if (previewLoading) return
@@ -198,37 +199,43 @@ export default function ReportPage() {
             )}
           </CollapsibleSection>
 
-          <CollapsibleSection
-            title="사용 가능한 화장품"
-            open={usableOpen}
-            onToggle={() => setUsableOpen((prev) => !prev)}
-          >
-            {usable.length === 0 ? (
-              <EmptyRow text="사용 가능한 화장품이 없어요" />
-            ) : (
-              <div className="flex w-full flex-col gap-[10px]">
-                {usable.map((item, index) => (
-                  <UsableProductCard key={index} item={item} />
-                ))}
-              </div>
-            )}
-          </CollapsibleSection>
+          {isBasicCare ? null : (
+            <>
+              <CollapsibleSection
+                title="사용 가능한 화장품"
+                open={usableOpen}
+                onToggle={() => setUsableOpen((prev) => !prev)}
+              >
+                {usable.length === 0 ? (
+                  <EmptyRow text="사용 가능한 화장품이 없어요" />
+                ) : (
+                  <div className="flex w-full flex-col gap-[10px]">
+                    {usable.map((item, index) => (
+                      <UsableProductCard key={index} item={item} />
+                    ))}
+                  </div>
+                )}
+              </CollapsibleSection>
 
-          <CollapsibleSection
-            title="사용 불가능한 화장품"
-            open={restrictedOpen}
-            onToggle={() => setRestrictedOpen((prev) => !prev)}
-          >
-            {restricted.length === 0 ? (
-              <EmptyRow text={report.products.allUnlockedLine || '모든 화장품이 해금되었어요'} />
-            ) : (
-              <div className="flex w-full flex-col gap-[10px]">
-                {restricted.map((item, index) => (
-                  <RestrictedProductCard key={index} item={item} />
-                ))}
-              </div>
-            )}
-          </CollapsibleSection>
+              <CollapsibleSection
+                title="사용 불가능한 화장품"
+                open={restrictedOpen}
+                onToggle={() => setRestrictedOpen((prev) => !prev)}
+              >
+                {restricted.length === 0 ? (
+                  <EmptyRow
+                    text={report.products.allUnlockedLine || '모든 화장품이 해금되었어요'}
+                  />
+                ) : (
+                  <div className="flex w-full flex-col gap-[10px]">
+                    {restricted.map((item, index) => (
+                      <RestrictedProductCard key={index} item={item} />
+                    ))}
+                  </div>
+                )}
+              </CollapsibleSection>
+            </>
+          )}
 
           <section className="flex w-full flex-col gap-[10px]">
             <p className="text-[18px] font-bold leading-normal text-gray-950">
