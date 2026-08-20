@@ -95,7 +95,9 @@ export default function SideMenu({
       <div
         role="dialog"
         aria-modal="true"
-        aria-hidden={!open}
+        // aria-hidden 대신 inert를 쓴다 — aria-hidden은 안에 포커스가 남아있으면(예: 방금 누른 버튼)
+        // "숨긴 요소 안에 포커스가 있다"는 접근성 경고를 띄운다. inert는 포커스를 강제로 빼주기 때문에 그 문제가 없다.
+        inert={!open}
         className={[
           'fixed left-0 top-0 z-50 flex h-[100dvh] w-[239px] flex-col justify-between overflow-y-auto bg-white px-[13px] pb-[32px] shadow-lg transition-transform duration-300 ease-out',
           'pt-[calc(17px+env(safe-area-inset-top))]',

@@ -7,6 +7,8 @@ import { createReport, previewRoutine } from '../api/reports'
 import type { ReportProductCard, ReportResponse, ReportRoutineStep } from '../api/reports'
 import { deleteTreatment, listTreatments } from '../api/treatments'
 import type { TreatmentItemResponse, TreatmentResponse } from '../api/treatments'
+import reactionIrritatedIcon from '../assets/icons/Vector.png'
+import reactionComfortableIcon from '../assets/icons/Vector (17).png'
 import routineLockIcon from '../assets/icons/routine-lock.png'
 import Navigator from '../components/Navigator'
 import SideMenu from '../components/SideMenu'
@@ -423,27 +425,13 @@ function TreatmentMiniCard({ entry }: { entry: TreatmentItemResponse }) {
 function ReactionBadge({ reaction }: { reaction: 'COMFORTABLE' | 'IRRITATED' }) {
   const comfortable = reaction === 'COMFORTABLE'
   return (
-    <span
-      aria-hidden
-      className={[
-        'flex size-[15px] shrink-0 items-center justify-center rounded-full',
-        comfortable ? 'bg-brand' : 'bg-[#e64240]',
-      ].join(' ')}
-    >
-      <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-        {comfortable ? (
-          <path
-            d="M1.5 4.5L3.5 6.5L7.5 2.5"
-            stroke="white"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        ) : (
-          <path d="M2 2L7 7M7 2L2 7" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-        )}
-      </svg>
-    </span>
+    <img
+      src={comfortable ? reactionComfortableIcon : reactionIrritatedIcon}
+      alt=""
+      width={15}
+      height={15}
+      className="block size-[15px] shrink-0"
+    />
   )
 }
 
