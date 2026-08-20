@@ -35,11 +35,22 @@ export default function CosmeticPage() {
   const navigate = useNavigate()
   const [products, setProducts] = useState<CosmeticProduct[]>([])
   const [formOpen, setFormOpen] = useState(true)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const handleAdd = (product: CosmeticProduct) => {
-    setProducts((prev) => [...prev, product])
+  const handleSave = (product: CosmeticProduct) => {
+    setProducts((prev) =>
+      editingId
+        ? prev.map((entry) => (entry.id === editingId ? product : entry))
+        : [...prev, product],
+    )
+    setEditingId(null)
+    setFormOpen(false)
+  }
+
+  const handleCloseForm = () => {
+    setEditingId(null)
     setFormOpen(false)
   }
 
@@ -103,7 +114,11 @@ export default function CosmeticPage() {
       </h1>
 
       {formOpen ? (
-        <CosmeticForm onClose={() => setFormOpen(false)} onAdd={handleAdd} />
+        <CosmeticForm
+          initial={editingId ? products.find((entry) => entry.id === editingId) : undefined}
+          onClose={handleCloseForm}
+          onSave={handleSave}
+        />
       ) : (
         <div className="flex w-full flex-1 flex-col">
           <div className="flex w-full flex-col gap-[10px]">
@@ -111,6 +126,10 @@ export default function CosmeticPage() {
               <ProductCard
                 key={product.id}
                 product={product}
+                onEdit={() => {
+                  setEditingId(product.id)
+                  setFormOpen(true)
+                }}
                 onDelete={() =>
                   setProducts((prev) =>
                     prev.filter((entry) => entry.id !== product.id),
@@ -158,18 +177,20 @@ export default function CosmeticPage() {
 }
 
 interface CosmeticFormProps {
+  /** 있으면 수정 모드 — 기존 값으로 채워서 시작하고, 저장 시 같은 id를 유지한다 */
+  initial?: CosmeticProduct
   onClose: () => void
-  onAdd: (product: CosmeticProduct) => void
+  onSave: (product: CosmeticProduct) => void
 }
 
 /** 화장품 입력 카드 (node 399:1897) */
-function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
+function CosmeticForm({ initial, onClose, onSave }: CosmeticFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [imageUrl, setImageUrl] = useState<string>()
-  const [imageFile, setImageFile] = useState<File>()
-  const [name, setName] = useState('')
-  const [productType, setProductType] = useState<ProductType>()
-  const [ingredients, setIngredients] = useState<string[]>([])
+  const [imageUrl, setImageUrl] = useState<string | undefined>(initial?.imageUrl)
+  const [imageFile, setImageFile] = useState<File | undefined>(initial?.imageFile)
+  const [name, setName] = useState(initial?.name ?? '')
+  const [productType, setProductType] = useState<ProductType | undefined>(initial?.productType)
+  const [ingredients, setIngredients] = useState<string[]>(initial?.ingredients ?? [])
   const [guideOpen, setGuideOpen] = useState(false)
 
   // 미리보기용 objectURL은 교체·언마운트 시 해제해야 메모리가 새지 않는다
@@ -206,8 +227,8 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
     const ingredientCodes = ingredients.map((label) => INGREDIENT_CODE_MAP[label])
     const category = getCosmeticCategoryLabel(ingredientCodes)
 
-    onAdd({
-      id: crypto.randomUUID(),
+    onSave({
+      id: initial?.id ?? crypto.randomUUID(),
       name: name.trim(),
       imageUrl,
       imageFile,
@@ -424,7 +445,7 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
             canAdd ? 'bg-brand' : 'cursor-not-allowed bg-gray-400',
           ].join(' ')}
         >
-          추가하기
+          {initial ? '저장하기' : '추가하기'}
         </button>
       </div>
     </div>
@@ -433,11 +454,12 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
 
 interface ProductCardProps {
   product: CosmeticProduct
+  onEdit: () => void
   onDelete: () => void
 }
 
 /** 등록된 화장품 카드 (node 399:1948) */
-function ProductCard({ product, onDelete }: ProductCardProps) {
+function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
   const tags = product.ingredients.filter((item) =>
     RISK_GROUP.items.includes(item),
   )
@@ -476,7 +498,9 @@ function ProductCard({ product, onDelete }: ProductCardProps) {
       </div>
 
       <div className="flex items-center gap-[8px] text-[13px] font-medium leading-none text-gray-600">
-        <button type="button">수정</button>
+        <button type="button" onClick={onEdit}>
+          수정
+        </button>
         <button type="button" onClick={onDelete}>
           삭제
         </button>

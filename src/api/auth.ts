@@ -34,3 +34,12 @@ export async function logout(): Promise<void> {
     clearCachedCsrfToken()
   }
 }
+
+/** 회원 탈퇴. 회원 데이터는 삭제되고, 재가입을 위한 OAuth 식별 정보만 보관된다. */
+export async function withdrawMember(): Promise<void> {
+  try {
+    await apiRequest<void>('/api/v1/members/me', { method: 'DELETE' })
+  } finally {
+    clearCachedCsrfToken()
+  }
+}

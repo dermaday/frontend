@@ -74,3 +74,8 @@ export function getLastReport(): ReportResponse | null {
     return null
   }
 }
+
+/** 마지막 남은 시술 기록이 삭제됐을 때처럼, 더 이상 보여줄 리포트가 없을 때 캐시를 지운다 */
+export function clearLastReport(): void {
+  localStorage.removeItem(LAST_REPORT_KEY)
+}

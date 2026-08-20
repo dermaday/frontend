@@ -3,15 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import type { CosmeticResponse } from '../api/cosmetics'
 import { listCosmeticsByTreatment } from '../api/cosmetics'
 import { getDownloadUrl } from '../api/images'
-import { previewRoutine } from '../api/reports'
+import { createReport, previewRoutine } from '../api/reports'
 import type { ReportProductCard, ReportResponse, ReportRoutineStep } from '../api/reports'
-import { listTreatments } from '../api/treatments'
-import type { TreatmentResponse } from '../api/treatments'
+import { deleteTreatment, listTreatments } from '../api/treatments'
+import type { TreatmentItemResponse, TreatmentResponse } from '../api/treatments'
 import routineLockIcon from '../assets/icons/routine-lock.png'
 import Navigator from '../components/Navigator'
 import SideMenu from '../components/SideMenu'
 import { daysSince, reconcileProducts } from '../lib/dDay'
-import { getLastReport } from '../lib/procedureStore'
+import { clearLastReport, getLastReport, saveLastReport } from '../lib/procedureStore'
 import {
   GENERAL_COSMETIC_IMAGE,
   getProductTypeDefaultImage,
@@ -112,6 +112,10 @@ export default function HomePage() {
     report.products.usable,
     report.products.restricted,
   )
+  // 이 리포트에 속한 시술만이 아니라 지금까지 등록한 시술 전부를 최신순으로 보여준다
+  const allTreatmentItems = treatmentRecords
+    .flatMap((record) => record.items)
+    .sort((a, b) => (a.treatedOn < b.treatedOn ? 1 : a.treatedOn > b.treatedOn ? -1 : 0))
   const isBasicCare = report.header.status === 'BASIC_CARE'
   const showHeroBanner = !isBasicCare
   const bannerProduct =
@@ -141,6 +145,32 @@ export default function HomePage() {
     }
   }
 
+  // 시술 기록 삭제 — 지금 보고 있던 기록이면 남은 것 중 가장 최근 기록으로 리포트를 다시 만든다
+  const handleDeleteTreatment = async (treatmentId: number) => {
+    await deleteTreatment(treatmentId)
+    const remaining = treatmentRecords.filter((record) => record.id !== treatmentId)
+    setTreatmentRecords(remaining)
+
+    if (treatmentId !== activeTreatmentId) return
+
+    const nextLatestId = remaining.reduce<number | undefined>(
+      (latest, entry) => (latest === undefined || entry.id > latest ? entry.id : latest),
+      undefined,
+    )
+
+    if (!nextLatestId) {
+      clearLastReport()
+      setReport(null)
+      setActiveTreatmentId(undefined)
+      return
+    }
+
+    const nextReport = await createReport({ treatmentRecordId: nextLatestId })
+    saveLastReport(nextReport)
+    setReport(nextReport)
+    setActiveTreatmentId(nextLatestId)
+  }
+
   return (
     <div className="flex min-h-[100dvh] justify-center">
       <SideMenu
@@ -152,6 +182,7 @@ export default function HomePage() {
           setReport(nextReport)
           setActiveTreatmentId(treatmentId)
         }}
+        onDeleteTreatment={handleDeleteTreatment}
       />
       <div className="flex w-full max-w-[402px] flex-col bg-white">
         <div className="flex flex-1 flex-col gap-[25px] overflow-y-auto px-[25px] pb-[85px] pt-[calc(16px+env(safe-area-inset-top))]">
@@ -187,12 +218,12 @@ export default function HomePage() {
 
           <section className="flex w-full flex-col gap-[10px]">
             <p className="text-[15px] font-semibold leading-normal text-black">시술 목록</p>
-            {report.treatments.length === 0 ? (
+            {allTreatmentItems.length === 0 ? (
               <EmptyBox text="등록된 시술이 없어요" />
             ) : (
-              <div className="grid w-full grid-cols-2 gap-[10px]">
-                {report.treatments.map((entry, index) => (
-                  <TreatmentMiniCard key={index} entry={entry} />
+              <div className="flex w-full gap-[10px] overflow-x-auto pb-[4px]">
+                {allTreatmentItems.map((entry) => (
+                  <TreatmentMiniCard key={entry.id} entry={entry} />
                 ))}
               </div>
             )}
@@ -365,11 +396,13 @@ function HeroBanner({
   )
 }
 
-function TreatmentMiniCard({ entry }: { entry: ReportResponse['treatments'][number] }) {
+function TreatmentMiniCard({ entry }: { entry: TreatmentItemResponse }) {
   return (
-    <div className="flex h-[60px] w-full items-center justify-between rounded-[10px] border border-gray-200 bg-white px-[15px]">
+    <div className="flex h-[60px] w-[183px] shrink-0 items-center justify-between rounded-[10px] border border-gray-200 bg-white px-[15px]">
       <div className="flex flex-col gap-px">
-        <p className="text-[15px] font-semibold leading-normal text-gray-950">{entry.name}</p>
+        <p className="break-keep text-[15px] font-semibold leading-normal text-gray-950">
+          {entry.treatmentName}
+        </p>
         <p className="text-[10px] leading-normal text-gray-700">
           {entry.treatedOn.replace(/-/g, '.')}
         </p>

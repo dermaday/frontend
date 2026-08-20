@@ -21,6 +21,13 @@ export interface CreateCosmeticRequest {
   imageObjectKey?: string
 }
 
+export interface UpdateCosmeticRequest {
+  name: string
+  productType: ProductType
+  ingredients: CosmeticIngredient[]
+  imageObjectKey?: string
+}
+
 export interface CosmeticResponse {
   id: number
   treatmentRecordId: number
@@ -56,6 +63,23 @@ export async function listCosmeticsByTreatment(
     `/api/v1/cosmetics?treatmentRecordId=${treatmentRecordId}`,
   )
   return response.data ?? []
+}
+
+export async function updateCosmetic(
+  cosmeticId: number,
+  request: UpdateCosmeticRequest,
+): Promise<CosmeticResponse> {
+  const response = await apiRequest<CosmeticResponse>(`/api/v1/cosmetics/${cosmeticId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  })
+
+  if (!response.data) {
+    throw new Error('Cosmetic response is empty')
+  }
+
+  return response.data
 }
 
 export async function deleteCosmetic(cosmeticId: number): Promise<void> {

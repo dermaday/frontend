@@ -73,3 +73,8 @@ export async function listTreatments(): Promise<TreatmentResponse[]> {
   const response = await apiRequest<TreatmentResponse[]>('/api/v1/treatments')
   return response.data ?? []
 }
+
+/** 시술 기록을 삭제한다 — 기록에 속한 화장품과 업로드 이미지도 함께 삭제된다 */
+export async function deleteTreatment(recordId: number): Promise<void> {
+  await apiRequest<void>(`/api/v1/treatments/${recordId}`, { method: 'DELETE' })
+}
