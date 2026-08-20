@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createReport } from '../api/reports'
+import type { ReportResponse } from '../api/reports'
 import { listTreatments } from '../api/treatments'
 import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
@@ -32,30 +33,45 @@ const DOT_COUNT = 8
 /** 한 바퀴 도는 데 걸리는 시간 (ms) — tailwind dot-fade와 맞춰야 한다 */
 const SPIN_DURATION = 1200
 
-/** Figma `리포트 생성 로딩 (light)` (node 522:954) */
+/** 안내 문구를 한 번은 다 보여주기 위한 최소 노출 시간 (ms) — 응답이 더 빨리 와도 이만큼은 기다린다 */
+const MIN_DISPLAY_DURATION = STEPS.length * STEP_INTERVAL
+/** 완료 체크마크를 보여주는 시간 (ms) — 애니메이션이 끝날 여유를 둔다 */
+const COMPLETE_HOLD_DURATION = 1100
+
+/** Figma `리포트 생성 로딩 (light)` (node 522:954) / `리포트 작성 완료` (node 857:4430) */
 export default function AnalyzingPage() {
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [leaving, setLeaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [reportResult, setReportResult] = useState<ReportResponse | null>(null)
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false)
+  // 리포트가 준비됐고 안내 문구도 다 돌았으면 완료 화면으로 전환한다 — 별도 state 없이 파생값으로 계산한다
+  const showComplete = Boolean(reportResult) && minTimeElapsed
 
-  // 문구는 응답이 올 때까지 계속 순환한다
+  // 문구는 응답이 올 때까지, 그리고 완료 화면으로 전환되기 전까지 계속 순환한다
   useEffect(() => {
-    if (error) return
+    if (error || showComplete) return
 
     const timer = window.setTimeout(() => setLeaving(true), HOLD_DURATION)
     return () => window.clearTimeout(timer)
-  }, [step, error])
+  }, [step, error, showComplete])
 
   useEffect(() => {
-    if (!leaving) return
+    if (!leaving || showComplete) return
 
     const timer = window.setTimeout(() => {
       setStep((prev) => (prev + 1) % STEPS.length)
       setLeaving(false)
     }, OUT_DURATION)
     return () => window.clearTimeout(timer)
-  }, [leaving])
+  }, [leaving, showComplete])
+
+  // 안내 문구가 최소 한 바퀴는 돌 때까지 기다린다 — 응답이 빨리 와도 로딩이 뚝 끊기지 않게
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMinTimeElapsed(true), MIN_DISPLAY_DURATION)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     let ignore = false
@@ -76,7 +92,7 @@ export default function AnalyzingPage() {
 
         if (ignore) return
         saveLastReport(report)
-        navigate('/report', { state: { report } })
+        setReportResult(report)
       } catch {
         if (!ignore) setError('리포트를 만들지 못했어요. 다시 시도해주세요.')
       }
@@ -87,7 +103,17 @@ export default function AnalyzingPage() {
     return () => {
       ignore = true
     }
-  }, [navigate])
+  }, [])
+
+  // 완료 체크마크를 잠깐 보여준 뒤 리포트 화면으로 넘어간다
+  useEffect(() => {
+    if (!showComplete || !reportResult) return
+
+    const timer = window.setTimeout(() => {
+      navigate('/report', { state: { report: reportResult } })
+    }, COMPLETE_HOLD_DURATION)
+    return () => window.clearTimeout(timer)
+  }, [showComplete, reportResult, navigate])
 
   const [firstLine, secondLine] = STEPS[step]
 
@@ -107,6 +133,28 @@ export default function AnalyzingPage() {
             >
               돌아가기
             </button>
+          </div>
+        ) : showComplete ? (
+          <div className="flex flex-col items-center gap-[16px]">
+            <div className="flex size-[64px] animate-pop-in items-center justify-center rounded-full bg-brand">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
+                <path
+                  d="M8 17L13.5 22.5L24 10"
+                  stroke="white"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  pathLength={1}
+                  strokeDasharray={1}
+                  className="animate-check-draw motion-reduce:animate-none"
+                />
+              </svg>
+            </div>
+            <p className="text-center text-[18px] font-bold leading-normal text-black">
+              리포트 작성이
+              <br />
+              완료되었어요!
+            </p>
           </div>
         ) : (
           <>

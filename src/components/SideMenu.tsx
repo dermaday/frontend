@@ -95,7 +95,7 @@ export default function SideMenu({
             <div className="flex w-[160px] flex-col gap-[15px]">
               <Wordmark className="text-[20px] text-brand" />
               <div className="flex flex-col gap-[3px]">
-                <p className="text-[24px] font-bold leading-normal text-black">
+                <p className="break-keep text-[24px] font-bold leading-normal text-black">
                   {member?.displayName ?? '회원'}님
                 </p>
                 <p className="text-[13px] font-medium leading-normal text-gray-700">

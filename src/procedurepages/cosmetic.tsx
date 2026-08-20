@@ -218,7 +218,7 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
   }
 
   return (
-    <div className="flex h-[653px] w-full shrink-0 flex-col gap-[15px] overflow-y-auto rounded-[10px] border border-gray-200 bg-white py-[15px] pl-[23px] pr-[16px]">
+    <div className="flex h-[653px] w-full shrink-0 flex-col gap-[15px] overflow-x-hidden overflow-y-auto rounded-[10px] border border-gray-200 bg-white py-[15px] pl-[23px] pr-[16px]">
       <div className="flex w-full shrink-0 items-center justify-end">
         <button
           type="button"
@@ -288,7 +288,7 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
         </div>
       </section>
 
-      <section className="flex w-[305px] shrink-0 flex-col gap-[11px]">
+      <section className="flex w-full shrink-0 flex-col gap-[11px]">
         <h2 className="flex items-center gap-[3px] text-[18px] font-semibold leading-normal text-black">
           제품명
           <span className="text-[15px] text-brand">*</span>
@@ -302,7 +302,7 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
         />
       </section>
 
-      <section className="flex w-[300px] shrink-0 flex-col gap-[11px]">
+      <section className="flex w-full shrink-0 flex-col gap-[11px]">
         <h2 className="flex items-center gap-[3px] text-[18px] font-semibold leading-normal text-black">
           제품 종류
           <span className="text-[15px] text-brand">*</span>
@@ -331,7 +331,7 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
         </div>
       </section>
 
-      <section className="flex w-[300px] shrink-0 flex-col gap-[14px]">
+      <section className="flex w-full shrink-0 flex-col gap-[14px]">
         <div className="flex w-full items-center justify-between">
           <h2 className="flex items-center gap-[3px] text-[18px] font-semibold leading-normal text-black">
             성분
@@ -391,7 +391,7 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
         <DownUpText
           delay={0}
           duration={GUIDE_INTRO_DURATION}
-          className="w-[298px] shrink-0"
+          className="w-full shrink-0"
         >
           <div className="rounded-b-[10px] rounded-tl-[10px] bg-gray-100 py-[10px] pl-[13px] pr-[10px]">
             <p className="text-[10px] leading-normal text-gray-700">
@@ -405,7 +405,7 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
                 >
                   · {entry.name}
                   <br />
-                  <span className="pl-[8px]">{entry.aliases}</span>
+                  <span className="break-words pl-[8px]">{entry.aliases}</span>
                 </li>
               ))}
             </ul>
@@ -413,7 +413,7 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
         </DownUpText>
       ) : null}
 
-      <div className="sticky bottom-0 mt-auto w-[305px] shrink-0 bg-gradient-to-b from-transparent via-white to-white pb-[2px] pt-[20px]">
+      <div className="sticky bottom-0 mt-auto w-full shrink-0 bg-gradient-to-b from-transparent via-white to-white pb-[2px] pt-[20px]">
         <button
           type="button"
           onClick={handleAdd}

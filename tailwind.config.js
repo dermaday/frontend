@@ -49,6 +49,16 @@ export default {
           '0%, 100%': { transform: 'scaleX(0.3)' },
           '50%': { transform: 'scaleX(1)' },
         },
+        /** 리포트 완료 화면의 원형 배지가 팝인된다 */
+        'pop-in': {
+          from: { opacity: '0', transform: 'scale(0.5)' },
+          to: { opacity: '1', transform: 'scale(1)' },
+        },
+        /** 체크마크가 채점하듯 한 획으로 그려진다 (pathLength=1 기준) */
+        'check-draw': {
+          from: { strokeDashoffset: '1' },
+          to: { strokeDashoffset: '0' },
+        },
       },
       animation: {
         'step-in': 'step-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both',
@@ -56,6 +66,8 @@ export default {
         // 점 하나의 크기 변화. 시차는 각 점의 animationDelay로 준다 (Lottie 대체)
         'dot-fade': 'dot-fade 1.2s linear infinite',
         'bar-grow': 'bar-grow 1.4s ease-in-out infinite',
+        'pop-in': 'pop-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'check-draw': 'check-draw 450ms ease-out 200ms both',
       },
     },
   },

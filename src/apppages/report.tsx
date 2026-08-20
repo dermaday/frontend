@@ -89,7 +89,7 @@ export default function ReportPage() {
                 <p className="text-[10px] leading-normal text-gray-600">
                   {report.asOf.replace(/-/g, '.')} 생성
                 </p>
-                <p className="text-[18px] font-bold leading-normal text-gray-950">
+                <p className="break-keep text-[18px] font-bold leading-normal text-gray-950">
                   {report.header.userName}님의 보고서
                 </p>
               </div>

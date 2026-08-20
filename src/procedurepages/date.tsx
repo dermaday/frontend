@@ -149,22 +149,26 @@ export default function ProcedureDateModal({
                 )
                 const selected = isSameDay(cellDate, value)
                 const isToday = isSameDay(cellDate, today)
+                const isFuture = cellDate.getTime() > today.getTime()
 
                 return (
                   <button
                     key={day}
                     type="button"
                     onClick={() => handlePickDay(day)}
-                    className="flex h-[38px] items-center justify-center"
+                    disabled={isFuture}
+                    className="flex h-[38px] items-center justify-center disabled:cursor-not-allowed"
                   >
                     <span
                       className={[
                         'flex h-[34px] w-[34px] items-center justify-center rounded-full text-[19px] leading-none',
-                        selected
-                          ? 'bg-black font-semibold text-white'
-                          : isToday
-                            ? 'bg-brand/15 text-brand'
-                            : 'text-black',
+                        isFuture
+                          ? 'text-gray-300'
+                          : selected
+                            ? 'bg-black font-semibold text-white'
+                            : isToday
+                              ? 'bg-brand/15 text-brand'
+                              : 'text-black',
                       ].join(' ')}
                     >
                       {day}

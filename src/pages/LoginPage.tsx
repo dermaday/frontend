@@ -44,9 +44,7 @@ export default function LoginPage() {
         <div className="mt-auto flex w-full flex-col gap-[15px]">
           <SocialButton provider="kakao" onClick={handleKakaoLogin} />
           <SocialButton provider="naver" onClick={handleNaverLogin} />
-          <button onClick={() => navigate('/procedurepages/start')} className="rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-700 hover:bg-gray-300">
-            개발자 모드
-          </button>
+          
         </div>
       </div>
 

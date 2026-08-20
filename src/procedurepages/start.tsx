@@ -19,7 +19,7 @@ export default function ProcedureStartPage() {
       <TopAppBar onBack={() => navigate(-1)} />
 
       <div className="flex w-full flex-col gap-[10px]">
-        <h1 className="w-[259px] text-[32px] font-extrabold leading-normal text-black">
+        <h1 className="w-full break-keep text-[32px] font-extrabold leading-normal text-black">
           <LeftRightText>환영합니다 {userName}님!</LeftRightText>
         </h1>
         <p className="w-[285px] text-[15px] font-semibold leading-normal text-gray-700">

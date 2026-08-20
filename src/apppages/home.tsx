@@ -7,6 +7,7 @@ import { previewRoutine } from '../api/reports'
 import type { ReportProductCard, ReportResponse, ReportRoutineStep } from '../api/reports'
 import { listTreatments } from '../api/treatments'
 import type { TreatmentResponse } from '../api/treatments'
+import routineLockIcon from '../assets/icons/routine-lock.png'
 import Navigator from '../components/Navigator'
 import SideMenu from '../components/SideMenu'
 import { daysSince, reconcileProducts } from '../lib/dDay'
@@ -112,10 +113,11 @@ export default function HomePage() {
     report.products.restricted,
   )
   const isBasicCare = report.header.status === 'BASIC_CARE'
-  const showHeroBanner = !isBasicCare && restricted.length > 0
-  const bannerProduct = showHeroBanner
-    ? restricted.reduce((max, item) => ((item.daysLeft ?? 0) > (max.daysLeft ?? 0) ? item : max))
-    : null
+  const showHeroBanner = !isBasicCare
+  const bannerProduct =
+    showHeroBanner && restricted.length > 0
+      ? restricted.reduce((max, item) => ((item.daysLeft ?? 0) > (max.daysLeft ?? 0) ? item : max))
+      : null
 
   const earliestTreatedOn = report.treatments.reduce<string | null>(
     (earliest, entry) => (!earliest || entry.treatedOn < earliest ? entry.treatedOn : earliest),
@@ -179,7 +181,7 @@ export default function HomePage() {
             </div>
           ) : null}
 
-          {showHeroBanner && bannerProduct ? (
+          {showHeroBanner ? (
             <HeroBanner product={bannerProduct} line={report.header.line} />
           ) : null}
 
@@ -320,7 +322,7 @@ function HomeHeader({
         <BellIcon />
       </div>
       <div className="flex flex-col items-end text-right">
-        <p className="text-[10px] leading-normal text-gray-600">
+        <p className="break-keep text-[10px] leading-normal text-gray-600">
           {userName}님이 시술을 받으신지
         </p>
         <p className="text-[24px] font-bold leading-normal text-brand">D+{elapsedDays}</p>
@@ -329,19 +331,35 @@ function HomeHeader({
   )
 }
 
-function HeroBanner({ product, line }: { product: ReportProductCard; line: string }) {
+function HeroBanner({
+  product,
+  line,
+}: {
+  product: ReportProductCard | null
+  line: string
+}) {
   return (
     <div className="relative flex h-[150px] w-full flex-col justify-end overflow-hidden rounded-[10px] bg-gradient-to-br from-gray-700 to-gray-950 p-[18px]">
       <div className="flex flex-col gap-[10px]">
-        <p className="text-[15px] font-semibold leading-normal text-brand">{product.dDayLabel}</p>
-        <div className="flex flex-col">
+        {product ? (
+          <>
+            <p className="text-[15px] font-semibold leading-normal text-brand">
+              {product.dDayLabel}
+            </p>
+            <div className="flex flex-col">
+              <p className="text-[18px] font-bold leading-normal text-white">
+                {line || '오늘은 사용을 피해주세요!'}
+              </p>
+              <p className="text-[13px] font-medium leading-normal text-gray-200">
+                {product.name} · {product.categoryPill}
+              </p>
+            </div>
+          </>
+        ) : (
           <p className="text-[18px] font-bold leading-normal text-white">
-            {line || '오늘은 사용을 피해주세요!'}
+            모두 해금된 상태입니다
           </p>
-          <p className="text-[13px] font-medium leading-normal text-gray-200">
-            {product.name} · {product.categoryPill}
-          </p>
-        </div>
+        )}
       </div>
     </div>
   )
@@ -490,13 +508,6 @@ function ChevronDownIcon({ className = '' }: { className?: string }) {
 
 function LockIcon() {
   return (
-    <svg width="33" height="40" viewBox="0 0 33 40" fill="none" aria-hidden className="opacity-40">
-      <rect x="3" y="17" width="27" height="20" rx="4" stroke="#737373" strokeWidth="2" />
-      <path
-        d="M9 17V11C9 6.58172 12.5817 3 17 3C21.4183 3 25 6.58172 25 11V17"
-        stroke="#737373"
-        strokeWidth="2"
-      />
-    </svg>
+    <img src={routineLockIcon} alt="" width={33} height={41} className="block h-[41px] w-[33px]" />
   )
 }
