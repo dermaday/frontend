@@ -37,6 +37,7 @@ export default function HomePage() {
   const [restrictedOpen, setRestrictedOpen] = useState(true)
   const [previewSteps, setPreviewSteps] = useState<ReportRoutineStep[] | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewError, setPreviewError] = useState<string | null>(null)
 
   // 화장품 이미지는 리포트에 안 들어있어서(ProductCard엔 imageObjectKey가 없음) 등록된 화장품 목록에서 이름으로 매칭한다
   // 시술 목록은 사이드 메뉴에서 지난 시술별 리포트를 다시 불러올 때도 쓴다
@@ -135,11 +136,13 @@ export default function HomePage() {
   const handlePreviewRoutine = async () => {
     if (previewLoading) return
     setPreviewLoading(true)
+    setPreviewError(null)
     try {
       const preview = await previewRoutine(report.reportId)
       setPreviewSteps(preview.steps)
-    } catch {
-      // 실패해도 잠금 화면을 유지한다
+    } catch (error) {
+      console.error('루틴 미리보기 실패', error)
+      setPreviewError('루틴을 불러오지 못했어요. 다시 시도해주세요.')
     } finally {
       setPreviewLoading(false)
     }
@@ -316,6 +319,11 @@ export default function HomePage() {
                 <p className="whitespace-pre-line text-center text-[15px] font-semibold leading-normal text-gray-500">
                   {report.routine.lockNotice ?? '모든 화장품 해금 후\n확인 할 수 있어요'}
                 </p>
+                {previewError ? (
+                  <p className="absolute bottom-[72px] text-center text-[12px] font-medium text-red-500">
+                    {previewError}
+                  </p>
+                ) : null}
                 <button
                   type="button"
                   onClick={handlePreviewRoutine}
