@@ -6,6 +6,10 @@ import skintypeResultCombination from '../assets/icons/skintype-result-combinati
 import skintypeResultDry from '../assets/icons/skintype-result-dry.svg'
 import skintypeResultNormal from '../assets/icons/skintype-result-normal.svg'
 import skintypeResultOily from '../assets/icons/skintype-result-oily.svg'
+import faceCombination from '../assets/images/복합성 피부.png'
+import faceDry from '../assets/images/건성 피부.png'
+import faceNormal from '../assets/images/중성 피부.png'
+import faceOily from '../assets/images/지성 피부.png'
 
 export type SkinType = 'dry' | 'normal' | 'oily' | 'combination'
 
@@ -147,6 +151,14 @@ export function getSkinTypeResultMeta(id: SkinType): SkinTypeResultMeta {
 
 export function getSkinTypeMeta(id: SkinType): SkinTypeMeta {
   return SKIN_TYPE_META.find((entry) => entry.id === id) ?? SKIN_TYPE_META[0]
+}
+
+/** 보고서 `피부타입` 카드에 쓰는 얼굴 일러스트 (마스크 색으로 유·수분 상태를 보여준다) */
+export const SKIN_TYPE_FACE_ICON: Record<SkinType, string> = {
+  dry: faceDry,
+  normal: faceNormal,
+  oily: faceOily,
+  combination: faceCombination,
 }
 
 /**

@@ -5,7 +5,6 @@ import SocialButton from '../components/SocialButton'
 import { SPLASH_VISIBLE_DURATION } from '../components/SplashOverlay'
 import Wordmark from '../components/Wordmark'
 import { startOAuthLogin } from '../api/auth'
-import { useNavigate } from 'react-router-dom'
 
 /** 등장 애니메이션 길이 (ms) */
 const INTRO_DURATION = 1500
@@ -15,7 +14,6 @@ export default function LoginPage() {
   // 백엔드 인가 시작 URL로 이동한다. 로그인 완료 후 쿠키 발급 → /auth/:provider/callback으로 돌아온다.
   const handleKakaoLogin = () => startOAuthLogin('kakao')
   const handleNaverLogin = () => startOAuthLogin('naver')
-  const navigate = useNavigate()
 
   return (
     <MobileScreen>

@@ -6,8 +6,9 @@ import type { ReportProductCard, ReportResponse, ReportRoutineStep } from '../ap
 import Navigator from '../components/Navigator'
 import { reconcileProducts } from '../lib/dDay'
 import { getLastReport } from '../lib/procedureStore'
-import { getSkinTypeMeta } from '../procedurepages/skinTypeData'
+import { SKIN_TYPE_FACE_ICON } from '../procedurepages/skinTypeData'
 import type { SkinType } from '../procedurepages/skinTypeData'
+import { SKIN_TYPE_REPORT_COPY } from './reportData'
 
 const SKIN_TYPE_CODE_TO_LOCAL: Record<ReportResponse['skinType']['code'], SkinType> = {
   DRY: 'dry',
@@ -57,7 +58,8 @@ export default function ReportPage() {
     )
   }
 
-  const meta = getSkinTypeMeta(SKIN_TYPE_CODE_TO_LOCAL[report.skinType.code])
+  const localSkinType = SKIN_TYPE_CODE_TO_LOCAL[report.skinType.code]
+  const skinTypeFeatures = SKIN_TYPE_REPORT_COPY[localSkinType]
   const routineReady = report.routine.status === 'READY' || report.routine.status === 'BASIC'
   const routineSteps = routineReady ? report.routine.steps : previewSteps
   const { usable, restricted } = reconcileProducts(
@@ -137,26 +139,30 @@ export default function ReportPage() {
             <p className="text-[18px] font-bold leading-normal text-gray-950">
               피부타입
             </p>
-            <div className="flex w-full flex-col items-center justify-center gap-[10px] rounded-[10px] bg-brand px-[10px] py-[20px]">
-              <div className="flex w-full items-center justify-center gap-[25px]">
-                <img
-                  src={meta.icon}
-                  alt=""
-                  width={meta.iconWidth}
-                  height={meta.iconHeight}
-                  className="block shrink-0 brightness-0 invert"
-                  style={{ width: meta.iconWidth, height: meta.iconHeight }}
-                />
-                <div className="flex w-[217px] flex-col gap-[10px]">
-                  <div className="flex flex-col gap-[5px] border-b border-white/40 pb-[5px]">
-                    <p className="text-[18px] font-bold leading-normal text-white">
-                      {report.skinType.name}
-                    </p>
-                  </div>
-                  <p className="text-[10px] leading-normal text-white">
-                    {report.skinType.description}
-                  </p>
-                </div>
+            <div className="flex w-full items-center gap-[15px] rounded-[10px] bg-brand px-[15px] py-[15px]">
+              <img
+                src={SKIN_TYPE_FACE_ICON[localSkinType]}
+                alt=""
+                width={85}
+                height={118}
+                className="block shrink-0"
+                style={{ width: 85, height: 118 }}
+              />
+              <div className="flex w-full flex-col gap-[8px]">
+                <p className="break-keep text-[18px] font-bold leading-normal text-white">
+                  {report.skinType.name}
+                </p>
+                <ul className="flex flex-col gap-[6px]">
+                  {skinTypeFeatures.map((line) => (
+                    <li
+                      key={line}
+                      className="flex gap-[4px] text-[11px] leading-normal text-white"
+                    >
+                      <span aria-hidden>•</span>
+                      <span className="break-keep">{line}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </section>
