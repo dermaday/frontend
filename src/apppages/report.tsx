@@ -82,7 +82,7 @@ export default function ReportPage() {
   return (
     <div className="flex min-h-[100dvh] justify-center">
       <div className="flex w-full max-w-[402px] flex-col bg-white">
-        <div className="flex flex-1 flex-col gap-[25px] overflow-y-auto px-[25px] pb-[25px] pt-[calc(16px+env(safe-area-inset-top))]">
+        <div className="flex flex-1 flex-col gap-[25px] overflow-y-auto px-[25px] pb-[85px] pt-[calc(16px+env(safe-area-inset-top))]">
           <div className="flex w-full flex-col gap-[12px] pb-[15px]">
             <div className="flex w-full items-center justify-between">
               <div className="flex flex-col gap-[3px]">

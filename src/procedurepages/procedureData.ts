@@ -144,18 +144,17 @@ export const INGREDIENT_GROUPS: IngredientGroup[] = [
   {
     id: 'safe',
     title: '안전군',
-    items: ['보습제·안정제', '기타'],
+    items: ['일반화장품'],
   },
 ]
 
-/** 성분 버튼 라벨 → POST /api/v1/cosmetics 에 보낼 성분 코드. 보습제·안정제/기타는 모두 GENERAL_COSMETIC으로 합쳐진다. */
+/** 성분 버튼 라벨 → POST /api/v1/cosmetics 에 보낼 성분 코드 */
 export const INGREDIENT_CODE_MAP: Record<string, CosmeticIngredient> = {
   레티놀: 'RETINOL',
   AHA: 'AHA',
   BHA: 'BHA',
   비타민C: 'VITAMIN_C',
-  '보습제·안정제': 'GENERAL_COSMETIC',
-  기타: 'GENERAL_COSMETIC',
+  일반화장품: 'GENERAL_COSMETIC',
 }
 
 /** 성분 코드 → 목록 카드에 표시할 라벨 (INGREDIENT_CODE_MAP의 역방향) */

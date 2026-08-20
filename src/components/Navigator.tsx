@@ -66,34 +66,40 @@ const TABS: NavTab[] = [
   { path: '/routine', label: '루틴', icon: RoutineIcon },
 ]
 
-/** Figma `네비게이터 - 홈` (node 882:8988) */
+/**
+ * Figma `네비게이터 - 홈` (node 882:8988)
+ * 화면 길이와 상관없이 항상 뷰포트 하단에 떠 있어야 해서 fixed로 띄운다 —
+ * 모바일 프레임(402px)에 맞춰 가운데 정렬한 뒤 그 안에서만 폭을 채운다.
+ */
 export default function Navigator() {
   const navigate = useNavigate()
   const location = useLocation()
 
   return (
-    <div className="flex h-[60px] w-full shrink-0 items-center justify-center border-t border-gray-200 bg-white">
-      {TABS.map((tab) => {
-        const active = location.pathname === tab.path
-        return (
-          <button
-            key={tab.path}
-            type="button"
-            onClick={() => navigate(tab.path)}
-            className="flex h-[60px] w-[100px] flex-col items-center justify-center gap-[3px]"
-          >
-            {tab.icon(active)}
-            <span
-              className={[
-                'text-[10px] leading-normal',
-                active ? 'text-gray-950' : 'text-gray-500',
-              ].join(' ')}
+    <div className="fixed bottom-0 left-0 z-30 flex w-full justify-center">
+      <div className="flex h-[60px] w-full max-w-[402px] shrink-0 items-center justify-center border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]">
+        {TABS.map((tab) => {
+          const active = location.pathname === tab.path
+          return (
+            <button
+              key={tab.path}
+              type="button"
+              onClick={() => navigate(tab.path)}
+              className="flex h-[60px] w-[100px] flex-col items-center justify-center gap-[3px]"
             >
-              {tab.label}
-            </span>
-          </button>
-        )
-      })}
+              {tab.icon(active)}
+              <span
+                className={[
+                  'text-[10px] leading-normal',
+                  active ? 'text-gray-950' : 'text-gray-500',
+                ].join(' ')}
+              >
+                {tab.label}
+              </span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

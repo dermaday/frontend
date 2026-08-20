@@ -47,7 +47,12 @@ export default function HomePage() {
         const treatments = await listTreatments()
         if (!ignore) {
           setTreatmentRecords(treatments)
-          setActiveTreatmentId((prev) => prev ?? treatments[treatments.length - 1]?.id)
+          // 배열 순서(마지막 = 최신)에 기대지 않고 id가 가장 큰 기록을 기본 선택으로 삼는다
+          const latestId = treatments.reduce<number | undefined>(
+            (latest, entry) => (latest === undefined || entry.id > latest ? entry.id : latest),
+            undefined,
+          )
+          setActiveTreatmentId((prev) => prev ?? latestId)
         }
         const lists = await Promise.all(
           treatments.map((treatment) => listCosmeticsByTreatment(treatment.id)),
@@ -147,7 +152,7 @@ export default function HomePage() {
         }}
       />
       <div className="flex w-full max-w-[402px] flex-col bg-white">
-        <div className="flex flex-1 flex-col gap-[25px] overflow-y-auto px-[25px] pb-[25px] pt-[calc(16px+env(safe-area-inset-top))]">
+        <div className="flex flex-1 flex-col gap-[25px] overflow-y-auto px-[25px] pb-[85px] pt-[calc(16px+env(safe-area-inset-top))]">
           <HomeHeader
             userName={report.header.userName}
             elapsedDays={elapsedDays}

@@ -14,6 +14,7 @@ import MobileScreen from '../components/MobileScreen'
 import TopAppBar from '../components/TopAppBar'
 import { getSelectedProcedures, saveSelectedCosmetics } from '../lib/procedureStore'
 import {
+  getCosmeticCategoryLabel,
   getProductTypeDefaultImage,
   INGREDIENT_CODE_MAP,
   INGREDIENT_GROUPS,
@@ -201,8 +202,9 @@ function CosmeticForm({ onClose, onAdd }: CosmeticFormProps) {
   const handleAdd = () => {
     if (!canAdd || !productType) return
 
-    const category =
-      SAFE_GROUP.items.find((item) => ingredients.includes(item)) ?? '기타'
+    // 위험 성분(레티놀 등)이 있으면 그걸 우선 보여주고, 없으면 일반화장품으로 표시한다
+    const ingredientCodes = ingredients.map((label) => INGREDIENT_CODE_MAP[label])
+    const category = getCosmeticCategoryLabel(ingredientCodes)
 
     onAdd({
       id: crypto.randomUUID(),

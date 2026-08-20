@@ -70,7 +70,7 @@ export default function CosmeticListPage() {
   return (
     <div className="flex min-h-[100dvh] justify-center">
       <div className="flex w-full max-w-[402px] flex-col bg-white">
-        <div className="flex flex-1 flex-col gap-[10px] overflow-y-auto px-[25px] pb-[25px] pt-[calc(16px+env(safe-area-inset-top))]">
+        <div className="flex flex-1 flex-col gap-[10px] overflow-y-auto px-[25px] pb-[85px] pt-[calc(16px+env(safe-area-inset-top))]">
           <TopAppBar onBack={() => navigate(-1)} />
 
           <div className="flex w-full items-center justify-between">

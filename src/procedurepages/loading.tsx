@@ -63,7 +63,11 @@ export default function AnalyzingPage() {
     async function generateReport() {
       try {
         const treatments = await listTreatments()
-        const latestTreatment = treatments[treatments.length - 1]
+        // 배열 순서(마지막 = 최신)에 기대지 않고 id가 가장 큰(=가장 최근에 생성된) 기록을 직접 고른다
+        const latestTreatment = treatments.reduce<(typeof treatments)[number] | null>(
+          (latest, entry) => (!latest || entry.id > latest.id ? entry : latest),
+          null,
+        )
         if (!latestTreatment) {
           throw new Error('등록된 시술 기록이 없어요')
         }
