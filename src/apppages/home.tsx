@@ -10,6 +10,7 @@ import type { TreatmentItemResponse, TreatmentResponse } from '../api/treatments
 import reactionIrritatedIcon from '../assets/icons/Vector.png'
 import reactionComfortableIcon from '../assets/icons/Vector (17).png'
 import routineLockIcon from '../assets/icons/routine-lock.png'
+import heroBannerImage from '../assets/images/Frame 220 (2).png'
 import Navigator from '../components/Navigator'
 import SideMenu from '../components/SideMenu'
 import { daysSince, reconcileProducts } from '../lib/dDay'
@@ -390,8 +391,12 @@ function HeroBanner({
   line: string
 }) {
   return (
-    <div className="relative flex h-[150px] w-full flex-col justify-end overflow-hidden rounded-[10px] bg-gradient-to-br from-gray-700 to-gray-950 p-[18px]">
-      <div className="flex flex-col gap-[10px]">
+    <div
+      className="relative flex h-[150px] w-full flex-col justify-end overflow-hidden rounded-[10px] bg-cover bg-center p-[18px]"
+      style={{ backgroundImage: `url(${heroBannerImage})` }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-gray-950/40 to-gray-950/10" />
+      <div className="relative flex flex-col gap-[10px]">
         {product ? (
           <>
             <p className="text-[15px] font-semibold leading-normal text-brand">
