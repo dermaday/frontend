@@ -205,6 +205,9 @@ function TreatmentRow({ treatment }: { treatment: WhsTreatment }) {
 
 function CosmeticRow({ cosmetic }: { cosmetic: WhsCosmetic }) {
   const [imageUrl, setImageUrl] = useState<string>()
+  // presigned URL 발급은 됐는데 실제 이미지 파일이 없는 경우(WHS 목데이터 등)도 있어서
+  // <img> 로딩 자체가 실패하면 목업 이미지로 넘어가게 별도로 잡는다
+  const [imageBroken, setImageBroken] = useState(false)
 
   useEffect(() => {
     if (!cosmetic.imageObjectKey) return
@@ -213,7 +216,9 @@ function CosmeticRow({ cosmetic }: { cosmetic: WhsCosmetic }) {
       .then((url) => {
         if (!ignore) setImageUrl(url)
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!ignore) setImageBroken(true)
+      })
     return () => {
       ignore = true
     }
@@ -222,7 +227,8 @@ function CosmeticRow({ cosmetic }: { cosmetic: WhsCosmetic }) {
   return (
     <div className="flex h-[100px] w-full items-start gap-[10px] rounded-[10px] border border-gray-200 bg-white p-[10px]">
       <img
-        src={imageUrl ?? getProductTypeDefaultImage(cosmetic.productType)}
+        src={imageUrl && !imageBroken ? imageUrl : getProductTypeDefaultImage(cosmetic.productType)}
+        onError={() => setImageBroken(true)}
         alt=""
         width={80}
         height={80}

@@ -158,7 +158,10 @@ interface CosmeticCardProps {
 
 /** Figma node 882:9210 계열 */
 function CosmeticCard({ entry, onDelete, onEdit }: CosmeticCardProps) {
-  const imageSrc = entry.imageUrl ?? getProductTypeDefaultImage(entry.productType)
+  const fallbackSrc = getProductTypeDefaultImage(entry.productType)
+  // presigned URL은 발급됐는데 실제 이미지 파일이 없어서 로딩 자체가 실패하는 경우 목업으로 넘어간다
+  const [imageBroken, setImageBroken] = useState(false)
+  const imageSrc = entry.imageUrl && !imageBroken ? entry.imageUrl : fallbackSrc
   const category = `${getCosmeticCategoryLabel(entry.ingredients)} | ${entry.productTypeName}`
 
   return (
@@ -167,6 +170,7 @@ function CosmeticCard({ entry, onDelete, onEdit }: CosmeticCardProps) {
         <button type="button" onClick={onEdit} aria-label="수정">
           <img
             src={imageSrc}
+            onError={() => setImageBroken(true)}
             alt=""
             width={168}
             height={168}
