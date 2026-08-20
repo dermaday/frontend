@@ -38,6 +38,8 @@ export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [restrictedOpen, setRestrictedOpen] = useState(true)
   const [previewSteps, setPreviewSteps] = useState<ReportRoutineStep[] | null>(null)
+  // steps가 빈 배열이어도(해금 전이라 추천할 루틴이 아직 없는 경우) 정상 응답이라 이걸로 구분한다
+  const [previewNotice, setPreviewNotice] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewError, setPreviewError] = useState<string | null>(null)
 
@@ -142,6 +144,7 @@ export default function HomePage() {
     try {
       const preview = await previewRoutine(report.reportId)
       setPreviewSteps(preview.steps)
+      setPreviewNotice(preview.notice ?? '해금이 끝나면 추천 루틴을 보여드릴게요')
     } catch (error) {
       console.error('루틴 미리보기 실패', error)
       setPreviewError('루틴을 불러오지 못했어요. 다시 시도해주세요.')
@@ -314,6 +317,13 @@ export default function HomePage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            ) : previewNotice ? (
+              <div className="flex h-[230px] w-full flex-col items-center justify-center gap-[9px] rounded-[10px] border border-gray-200 bg-white">
+                <LockIcon />
+                <p className="whitespace-pre-line text-center text-[15px] font-semibold leading-normal text-gray-500">
+                  {previewNotice}
+                </p>
               </div>
             ) : (
               <div className="relative flex h-[230px] w-full flex-col items-center justify-center gap-[9px] overflow-hidden rounded-[10px] border border-gray-200 bg-white">
