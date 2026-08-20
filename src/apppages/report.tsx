@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { previewRoutine } from '../api/reports'
 import type { ReportProductCard, ReportResponse, ReportRoutineStep } from '../api/reports'
 import Navigator from '../components/Navigator'
+import { reconcileProducts } from '../lib/dDay'
 import { getLastReport } from '../lib/procedureStore'
 import { getSkinTypeMeta } from '../procedurepages/skinTypeData'
 import type { SkinType } from '../procedurepages/skinTypeData'
@@ -59,6 +60,10 @@ export default function ReportPage() {
   const meta = getSkinTypeMeta(SKIN_TYPE_CODE_TO_LOCAL[report.skinType.code])
   const routineReady = report.routine.status === 'READY' || report.routine.status === 'BASIC'
   const routineSteps = routineReady ? report.routine.steps : previewSteps
+  const { usable, restricted } = reconcileProducts(
+    report.products.usable,
+    report.products.restricted,
+  )
 
   const handlePreviewRoutine = async () => {
     if (previewLoading) return
@@ -198,11 +203,11 @@ export default function ReportPage() {
             open={usableOpen}
             onToggle={() => setUsableOpen((prev) => !prev)}
           >
-            {report.products.usable.length === 0 ? (
+            {usable.length === 0 ? (
               <EmptyRow text="사용 가능한 화장품이 없어요" />
             ) : (
               <div className="flex w-full flex-col gap-[10px]">
-                {report.products.usable.map((item, index) => (
+                {usable.map((item, index) => (
                   <UsableProductCard key={index} item={item} />
                 ))}
               </div>
@@ -214,11 +219,11 @@ export default function ReportPage() {
             open={restrictedOpen}
             onToggle={() => setRestrictedOpen((prev) => !prev)}
           >
-            {report.products.restricted.length === 0 ? (
+            {restricted.length === 0 ? (
               <EmptyRow text={report.products.allUnlockedLine || '모든 화장품이 해금되었어요'} />
             ) : (
               <div className="flex w-full flex-col gap-[10px]">
-                {report.products.restricted.map((item, index) => (
+                {restricted.map((item, index) => (
                   <RestrictedProductCard key={index} item={item} />
                 ))}
               </div>
