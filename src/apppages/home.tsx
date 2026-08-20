@@ -315,6 +315,9 @@ export default function HomePage() {
                       <p className="text-[10px] leading-normal text-gray-500">
                         {step.categoryPill}
                       </p>
+                      {step.tip ? (
+                        <p className="text-[10px] leading-normal text-brand">{step.tip}</p>
+                      ) : null}
                     </div>
                   </div>
                 ))}
