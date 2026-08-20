@@ -6,7 +6,9 @@ import { getDownloadUrl } from '../api/images'
 import { previewRoutine } from '../api/reports'
 import type { ReportProductCard, ReportResponse, ReportRoutineStep } from '../api/reports'
 import { listTreatments } from '../api/treatments'
+import type { TreatmentResponse } from '../api/treatments'
 import Navigator from '../components/Navigator'
+import SideMenu from '../components/SideMenu'
 import { daysSince, reconcileProducts } from '../lib/dDay'
 import { getLastReport } from '../lib/procedureStore'
 import {
@@ -26,19 +28,27 @@ interface CosmeticImageInfo {
  */
 export default function HomePage() {
   const navigate = useNavigate()
-  const [report] = useState<ReportResponse | null>(() => getLastReport())
+  const [report, setReport] = useState<ReportResponse | null>(() => getLastReport())
   const [imagesByName, setImagesByName] = useState<Record<string, CosmeticImageInfo>>({})
+  const [treatmentRecords, setTreatmentRecords] = useState<TreatmentResponse[]>([])
+  const [activeTreatmentId, setActiveTreatmentId] = useState<number>()
+  const [menuOpen, setMenuOpen] = useState(false)
   const [restrictedOpen, setRestrictedOpen] = useState(true)
   const [previewSteps, setPreviewSteps] = useState<ReportRoutineStep[] | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
 
   // 화장품 이미지는 리포트에 안 들어있어서(ProductCard엔 imageObjectKey가 없음) 등록된 화장품 목록에서 이름으로 매칭한다
+  // 시술 목록은 사이드 메뉴에서 지난 시술별 리포트를 다시 불러올 때도 쓴다
   useEffect(() => {
     let ignore = false
 
     async function loadImages() {
       try {
         const treatments = await listTreatments()
+        if (!ignore) {
+          setTreatmentRecords(treatments)
+          setActiveTreatmentId((prev) => prev ?? treatments[treatments.length - 1]?.id)
+        }
         const lists = await Promise.all(
           treatments.map((treatment) => listCosmeticsByTreatment(treatment.id)),
         )
@@ -126,9 +136,23 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-[100dvh] justify-center">
+      <SideMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        treatments={treatmentRecords}
+        activeTreatmentId={activeTreatmentId}
+        onSelectReport={(nextReport, treatmentId) => {
+          setReport(nextReport)
+          setActiveTreatmentId(treatmentId)
+        }}
+      />
       <div className="flex w-full max-w-[402px] flex-col bg-white">
         <div className="flex flex-1 flex-col gap-[25px] overflow-y-auto px-[25px] pb-[25px] pt-[calc(16px+env(safe-area-inset-top))]">
-          <HomeHeader userName={report.header.userName} elapsedDays={elapsedDays} />
+          <HomeHeader
+            userName={report.header.userName}
+            elapsedDays={elapsedDays}
+            onMenuClick={() => setMenuOpen(true)}
+          />
 
           {showHeroBanner && bannerProduct ? (
             <HeroBanner product={bannerProduct} line={report.header.line} />
@@ -243,11 +267,21 @@ export default function HomePage() {
   )
 }
 
-function HomeHeader({ userName, elapsedDays }: { userName: string; elapsedDays: number }) {
+function HomeHeader({
+  userName,
+  elapsedDays,
+  onMenuClick,
+}: {
+  userName: string
+  elapsedDays: number
+  onMenuClick: () => void
+}) {
   return (
     <div className="flex w-full items-center justify-between">
       <div className="flex items-center gap-[15px]">
-        <MenuIcon />
+        <button type="button" onClick={onMenuClick} aria-label="메뉴 열기">
+          <MenuIcon />
+        </button>
         <BellIcon />
       </div>
       <div className="flex flex-col items-end text-right">
