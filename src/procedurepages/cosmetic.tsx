@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createCosmetic, type ProductType } from '../api/cosmetics'
 import { uploadImage } from '../api/images'
-import { createTreatment } from '../api/treatments'
+import { createTreatment, listTreatments } from '../api/treatments'
 import alertCircleIcon from '../assets/icons/alert-circle.svg'
 import cameraIcon from '../assets/icons/camera.svg'
 import closeIcon from '../assets/icons/close.svg'
@@ -57,24 +57,36 @@ export default function CosmeticPage() {
   const handleSubmit = async () => {
     if (submitting) return
 
-    const procedures = getSelectedProcedures()
-    if (procedures.length === 0) {
-      setSubmitError('선택된 시술이 없어요. 이전 단계부터 다시 진행해주세요.')
-      return
-    }
-
     setSubmitting(true)
     setSubmitError(null)
 
     try {
-      // 시술 선택 단계에서는 저장만 해두고, 여기서 선택 완료를 눌러야 실제로 서버에 등록한다.
-      const treatment = await createTreatment(
-        procedures.map((entry) => ({
-          treatmentType: entry.treatmentType,
-          treatedOn: toIsoDate(entry.date),
-          reaction: entry.condition === 'irritated' ? 'IRRITATED' : 'COMFORTABLE',
-        })),
-      )
+      const procedures = getSelectedProcedures()
+
+      let treatmentRecordId: number
+      if (procedures.length > 0) {
+        // 시술 선택 단계에서는 저장만 해두고, 여기서 선택 완료를 눌러야 실제로 서버에 등록한다.
+        const treatment = await createTreatment(
+          procedures.map((entry) => ({
+            treatmentType: entry.treatmentType,
+            treatedOn: toIsoDate(entry.date),
+            reaction: entry.condition === 'irritated' ? 'IRRITATED' : 'COMFORTABLE',
+          })),
+        )
+        treatmentRecordId = treatment.id
+      } else {
+        // 화장품 관리 화면에서 바로 들어온 경우 — 새 시술 없이 가장 최근 시술 기록에 화장품만 추가한다.
+        const treatments = await listTreatments()
+        const latest = treatments.reduce<(typeof treatments)[number] | null>(
+          (latest, entry) => (!latest || entry.id > latest.id ? entry : latest),
+          null,
+        )
+        if (!latest) {
+          setSubmitError('등록된 시술이 없어요. 시술을 먼저 등록해주세요.')
+          return
+        }
+        treatmentRecordId = latest.id
+      }
 
       for (const product of products) {
         const imageObjectKey = product.imageFile
@@ -88,7 +100,7 @@ export default function CosmeticPage() {
         ]
 
         await createCosmetic({
-          treatmentRecordId: treatment.id,
+          treatmentRecordId,
           name: product.name,
           productType: product.productType,
           ingredients,

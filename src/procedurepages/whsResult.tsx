@@ -51,8 +51,13 @@ export default function WhsResultPage() {
     setSubmitError(null)
 
     try {
-      await importWhs()
-      navigate('/procedurepages/loading')
+      const result = await importWhs()
+      // 이미 등록했던 WHS라면 기존 시술 기록을 그대로 돌려주는데, 그 사이 다른 시술을 추가로
+      // 등록했을 수 있어서 "가장 최근 기록"을 자동으로 고르면 WHS가 아닌 다른 기록이 뽑힐 수 있다.
+      // 그래서 어떤 기록의 리포트를 만들지 여기서 명시적으로 지정한다.
+      navigate('/procedurepages/loading', {
+        state: { treatmentRecordId: result.treatmentRecord.id },
+      })
     } catch {
       setSubmitError('등록에 실패했어요. 다시 시도해주세요.')
     } finally {

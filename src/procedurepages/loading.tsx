@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { createReport } from '../api/reports'
 import type { ReportResponse } from '../api/reports'
 import { listTreatments } from '../api/treatments'
 import HomeIndicator from '../components/HomeIndicator'
 import MobileScreen from '../components/MobileScreen'
 import { saveLastReport } from '../lib/procedureStore'
+
+interface AnalyzingLocationState {
+  /** WHS 등록처럼 이미 어떤 시술 기록인지 정해져 있을 때 — 없으면 가장 최근 기록을 자동으로 고른다 */
+  treatmentRecordId?: number
+}
 
 /**
  * 진행 단계 문구. 시안(node 522:1026)대로 두 줄로 끊는다.
@@ -41,6 +46,9 @@ const COMPLETE_HOLD_DURATION = 1100
 /** Figma `리포트 생성 로딩 (light)` (node 522:954) / `리포트 작성 완료` (node 857:4430) */
 export default function AnalyzingPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const fixedTreatmentRecordId = (location.state as AnalyzingLocationState | null)
+    ?.treatmentRecordId
   const [step, setStep] = useState(0)
   const [leaving, setLeaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -78,17 +86,22 @@ export default function AnalyzingPage() {
 
     async function generateReport() {
       try {
-        const treatments = await listTreatments()
-        // 배열 순서(마지막 = 최신)에 기대지 않고 id가 가장 큰(=가장 최근에 생성된) 기록을 직접 고른다
-        const latestTreatment = treatments.reduce<(typeof treatments)[number] | null>(
-          (latest, entry) => (!latest || entry.id > latest.id ? entry : latest),
-          null,
-        )
-        if (!latestTreatment) {
-          throw new Error('등록된 시술 기록이 없어요')
+        let treatmentRecordId = fixedTreatmentRecordId
+
+        if (!treatmentRecordId) {
+          const treatments = await listTreatments()
+          // 배열 순서(마지막 = 최신)에 기대지 않고 id가 가장 큰(=가장 최근에 생성된) 기록을 직접 고른다
+          const latestTreatment = treatments.reduce<(typeof treatments)[number] | null>(
+            (latest, entry) => (!latest || entry.id > latest.id ? entry : latest),
+            null,
+          )
+          if (!latestTreatment) {
+            throw new Error('등록된 시술 기록이 없어요')
+          }
+          treatmentRecordId = latestTreatment.id
         }
 
-        const report = await createReport({ treatmentRecordId: latestTreatment.id })
+        const report = await createReport({ treatmentRecordId })
 
         if (ignore) return
         saveLastReport(report)
@@ -103,7 +116,7 @@ export default function AnalyzingPage() {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [fixedTreatmentRecordId])
 
   // 완료 체크마크를 잠깐 보여준 뒤 리포트 화면으로 넘어간다
   useEffect(() => {

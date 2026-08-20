@@ -96,7 +96,7 @@ export default function CosmeticListPage() {
             </h1>
             <button
               type="button"
-              onClick={() => navigate('/procedurepages/start')}
+              onClick={() => navigate('/procedurepages/cosmetic')}
               aria-label="화장품 추가하기"
               className="flex h-[33px] w-[33px] items-center justify-center"
             >
