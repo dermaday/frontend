@@ -64,7 +64,10 @@ export default function CosmeticPage() {
       const procedures = getSelectedProcedures()
 
       let treatmentRecordId: number
-      if (procedures.length > 0) {
+      // 화장품 관리에서 바로 들어온 경우(procedures가 없음)는 새 시술 등록이 아니라
+      // 화장품만 저장하면 되는 흐름이라, 리포트를 다시 만들지 않고 목록으로 돌아간다.
+      const isNewTreatmentFlow = procedures.length > 0
+      if (isNewTreatmentFlow) {
         // 시술 선택 단계에서는 저장만 해두고, 여기서 선택 완료를 눌러야 실제로 서버에 등록한다.
         const treatment = await createTreatment(
           procedures.map((entry) => ({
@@ -109,7 +112,7 @@ export default function CosmeticPage() {
       }
 
       saveSelectedCosmetics(products.map((product) => product.name))
-      navigate('/procedurepages/loading')
+      navigate(isNewTreatmentFlow ? '/procedurepages/loading' : '/cosmetics')
     } catch {
       setSubmitError('등록에 실패했어요. 다시 시도해주세요.')
     } finally {
